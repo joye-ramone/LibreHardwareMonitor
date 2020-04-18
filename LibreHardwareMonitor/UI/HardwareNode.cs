@@ -69,7 +69,14 @@ namespace LibreHardwareMonitor.UI
             set
             {
                 _expanded = value;
-                _settings.SetValue(_expandedIdentifier, _expanded);
+                if (!_expanded)
+                {
+                    _settings.SetValue(_expandedIdentifier, _expanded);
+                }
+                else
+                {
+                    _settings.Remove(_expandedIdentifier);
+                }
             }
         }
 

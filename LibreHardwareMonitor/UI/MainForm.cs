@@ -368,6 +368,7 @@ namespace LibreHardwareMonitor.UI
             // Make sure the settings are saved when the user logs off
             Microsoft.Win32.SystemEvents.SessionEnded += delegate
             {
+                PersistCollapsedNodeState(treeView);
                 _computer.Close();
                 SaveConfiguration();
                 if (_runWebServer.Value)
@@ -375,7 +376,13 @@ namespace LibreHardwareMonitor.UI
             };
 
             KeyPreview = true;
-            KeyDown += (sender, args) => { SysTrayHideShow(); };
+            KeyDown += (sender, e) =>
+            {
+                if (e.Modifiers == Keys.None && e.KeyCode == Keys.Escape)
+                {
+                    SysTrayHideShow();
+                }
+            };
         }
 
         private void OnHotKey(object sender, HotkeyEventArgs e)
@@ -727,6 +734,20 @@ namespace LibreHardwareMonitor.UI
             }
         }
 
+        private void PersistCollapsedNodeState(TreeViewAdv treeViewAdv)
+        {
+            var collapsedHwNodes = treeViewAdv.AllNodes
+                .Where(n => !n.IsExpanded && n.Tag is IExpandPersistNode expandPersistNode && expandPersistNode.Expanded)
+                .OrderByDescending(n => n.Level)
+                .ToList();
+
+            foreach (TreeNodeAdv node in collapsedHwNodes)
+            {
+                var expandPersistNode = (IExpandPersistNode)node.Tag;
+                expandPersistNode.Expanded = false;
+            }
+        }
+
         private void CloseApplication()
         {
             FormClosed -= MainForm_FormClosed;
@@ -734,6 +755,9 @@ namespace LibreHardwareMonitor.UI
             Visible = false;
             _systemTray.IsMainIconEnabled = false;
             timer.Enabled = false;
+
+            PersistCollapsedNodeState(treeView);
+
             _computer.Close();
             SaveConfiguration();
             if (_runWebServer.Value)
@@ -753,26 +777,17 @@ namespace LibreHardwareMonitor.UI
             _ = new AboutBox().ShowDialog();
         }
 
-        private void TreeView_Click(object sender, EventArgs e)
+        private void TreeView_Click(object sender, TreeNodeAdvMouseEventArgs e)
         {
-            if (!(e is MouseEventArgs m) || (m.Button != MouseButtons.Left && m.Button != MouseButtons.Right))
+            if (!(e is TreeNodeAdvMouseEventArgs m) || (m.Button != MouseButtons.Right)) // m.Button != MouseButtons.Left && 
                 return;
 
-            NodeControlInfo info = treeView.GetNodeControlInfoAt(new Point(m.X, m.Y));
-            if (m.Button == MouseButtons.Left && info.Node != null)
-            {
-                if (info.Node.Tag is IExpandPersistNode expandPersistNode)
-                {
-                    expandPersistNode.Expanded = info.Node.IsExpanded;
-                }
+            TreeNodeAdv treeViewSelectedNode = e.Node;
 
-                return;
-            }
-
-            treeView.SelectedNode = info.Node;
-            if (info.Node != null)
+            treeView.SelectedNode = treeViewSelectedNode;
+            if (treeViewSelectedNode != null)
             {
-                if (info.Node.Tag is SensorNode node && node.Sensor != null)
+                if (treeViewSelectedNode.Tag is SensorNode node && node.Sensor != null)
                 {
                     treeContextMenu.MenuItems.Clear();
                     if (node.Sensor.Parameters.Count > 0)
@@ -893,7 +908,7 @@ namespace LibreHardwareMonitor.UI
                     treeContextMenu.Show(treeView, new Point(m.X, m.Y));
                 }
 
-                if (info.Node.Tag is HardwareNode hardwareNode && hardwareNode.Hardware != null)
+                if (treeViewSelectedNode.Tag is HardwareNode hardwareNode && hardwareNode.Hardware != null)
                 {
                     treeContextMenu.MenuItems.Clear();
 

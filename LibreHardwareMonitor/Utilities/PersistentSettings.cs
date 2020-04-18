@@ -4,10 +4,12 @@
 // Partial Copyright (C) Michael Möller <mmoeller@openhardwaremonitor.org> and Contributors.
 // All Rights Reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml;
 using LibreHardwareMonitor.Hardware;
@@ -81,7 +83,10 @@ namespace LibreHardwareMonitor.Utilities
             doc.AppendChild(configuration);
             XmlElement appSettings = doc.CreateElement("appSettings");
             configuration.AppendChild(appSettings);
-            foreach (KeyValuePair<string, string> keyValuePair in _settings)
+
+            IEnumerable<KeyValuePair<string, string>> keyValuePairs = SortSettingsForSave();
+
+            foreach (KeyValuePair<string, string> keyValuePair in keyValuePairs)
             {
                 XmlElement add = doc.CreateElement("add");
                 add.SetAttribute("key", keyValuePair.Key);
@@ -124,6 +129,21 @@ namespace LibreHardwareMonitor.Utilities
                 File.Delete(backupFileName);
             }
             catch { }
+        }
+
+        private IEnumerable<KeyValuePair<string, string>> SortSettingsForSave()
+        {
+            return _settings
+                .OrderBy(v =>
+                {
+                    int lastIndexOf = v.Key.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase);
+                    if (lastIndexOf != -1)
+                    {
+                        return v.Key.Substring(lastIndexOf);
+                    }
+                    return v.Key;
+                })
+                .ThenBy(v => v.Key);
         }
 
         public bool Contains(string name)

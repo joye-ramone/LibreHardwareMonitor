@@ -109,7 +109,6 @@ namespace Aga.Controls.Tree
 				TreeModelEventArgs args = new TreeModelEventArgs(GetPath(parent), new int[] { index }, new object[] { node });
 				NodesInserted(this, args);
 			}
-
 		}
 
 		public event EventHandler<TreeModelEventArgs> NodesRemoved;
