@@ -20,6 +20,8 @@ namespace LibreHardwareMonitor.UI
         public ParameterForm()
         {
             InitializeComponent();
+
+            CancelButton = cancelButton;
         }
 
         public IReadOnlyList<IParameter> Parameters

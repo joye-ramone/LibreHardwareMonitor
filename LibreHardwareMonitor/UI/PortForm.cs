@@ -21,6 +21,8 @@ namespace LibreHardwareMonitor.UI
             InitializeComponent();
             _parent = m;
             _localIP = GetLocalIP();
+
+            CancelButton = portCancelButton;
         }
 
         private void PortTextBox_TextChanged(object sender, EventArgs e)

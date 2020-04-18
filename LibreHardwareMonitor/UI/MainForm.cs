@@ -64,7 +64,7 @@ namespace LibreHardwareMonitor.UI
 
         private bool _selectionDragging;
 
-        private Keys _shotHideHotKey = Keys.Control | Keys.Shift | Keys.Oemtilde;
+        private Keys _showHideHotKey = Keys.Control | Keys.Shift | Keys.Oemtilde;
 
         public MainForm()
         {
@@ -359,9 +359,9 @@ namespace LibreHardwareMonitor.UI
             else
                 Show();
 
-            _shotHideHotKey = (Keys)_settings.GetValue("ShowHideHotKey", (int)_shotHideHotKey);
+            _showHideHotKey = (Keys)_settings.GetValue("ShowHideHotKey", (int)_showHideHotKey);
 
-            HotkeyManager.Current.AddOrReplace("OnHotKey", _shotHideHotKey, OnHotKey);
+            HotkeyManager.Current.AddOrReplace("OnHotKey", _showHideHotKey, OnHotKey);
 
             // Create a handle, otherwise calling Close() does not fire FormClosed
 
@@ -373,6 +373,9 @@ namespace LibreHardwareMonitor.UI
                 if (_runWebServer.Value)
                     Server.Quit();
             };
+
+            KeyPreview = true;
+            KeyDown += (sender, args) => { SysTrayHideShow(); };
         }
 
         private void OnHotKey(object sender, HotkeyEventArgs e)
@@ -654,7 +657,7 @@ namespace LibreHardwareMonitor.UI
             if (_plotPanel == null || _settings == null)
                 return;
 
-            _settings.SetValue("ShowHideHotKey", (int)_shotHideHotKey);
+            _settings.SetValue("ShowHideHotKey", (int)_showHideHotKey);
 
             _plotPanel.SetCurrentSettings();
 
