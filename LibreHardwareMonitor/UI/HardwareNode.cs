@@ -29,6 +29,9 @@ namespace LibreHardwareMonitor.UI
             Hardware = hardware;
             Image = HardwareTypeImage.Instance.GetImage(hardware.HardwareType);
 
+            bool hidden = settings.GetValue(new Identifier(hardware.Identifier, "hidden").ToString(), false);
+            base.IsVisible = !hidden;
+
             foreach (SensorType sensorType in Enum.GetValues(typeof(SensorType)))
                 _typeNodes.Add(new TypeNode(sensorType, hardware.Identifier, _settings));
 
@@ -46,6 +49,16 @@ namespace LibreHardwareMonitor.UI
         {
             get { return Hardware.Name; }
             set { Hardware.Name = value; }
+        }
+
+        public override bool IsVisible
+        {
+            get { return base.IsVisible; }
+            set
+            {
+                base.IsVisible = value;
+                _settings.SetValue(new Identifier(Hardware.Identifier, "hidden").ToString(), !value);
+            }
         }
 
         public IHardware Hardware { get; }

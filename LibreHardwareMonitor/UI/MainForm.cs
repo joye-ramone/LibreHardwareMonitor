@@ -17,6 +17,8 @@ using Aga.Controls.Tree.NodeControls;
 using LibreHardwareMonitor.Hardware;
 using LibreHardwareMonitor.Utilities;
 using LibreHardwareMonitor.Wmi;
+using NHotkey;
+using NHotkey.WindowsForms;
 
 
 namespace LibreHardwareMonitor.UI
@@ -61,6 +63,8 @@ namespace LibreHardwareMonitor.UI
         private readonly Logger _logger;
 
         private bool _selectionDragging;
+
+        private Keys _shotHideHotKey = Keys.Control | Keys.Shift | Keys.Oemtilde;
 
         public MainForm()
         {
@@ -355,6 +359,10 @@ namespace LibreHardwareMonitor.UI
             else
                 Show();
 
+            _shotHideHotKey = (Keys)_settings.GetValue("ShowHideHotKey", (int)_shotHideHotKey);
+
+            HotkeyManager.Current.AddOrReplace("OnHotKey", _shotHideHotKey, OnHotKey);
+
             // Create a handle, otherwise calling Close() does not fire FormClosed
 
             // Make sure the settings are saved when the user logs off
@@ -365,6 +373,11 @@ namespace LibreHardwareMonitor.UI
                 if (_runWebServer.Value)
                     Server.Quit();
             };
+        }
+
+        private void OnHotKey(object sender, HotkeyEventArgs e)
+        {
+            SysTrayHideShow();
         }
 
         private void InitializeSplitter()
@@ -641,6 +654,7 @@ namespace LibreHardwareMonitor.UI
             if (_plotPanel == null || _settings == null)
                 return;
 
+            _settings.SetValue("ShowHideHotKey", (int)_shotHideHotKey);
 
             _plotPanel.SetCurrentSettings();
 
@@ -886,6 +900,24 @@ namespace LibreHardwareMonitor.UI
                         item.Click += delegate
                         {
                             nodeTextBoxText.BeginEdit();
+                        };
+                        treeContextMenu.MenuItems.Add(item);
+                    }
+                    if (hardwareNode.IsVisible)
+                    {
+                        MenuItem item = new MenuItem("Hide");
+                        item.Click += delegate
+                        {
+                            hardwareNode.IsVisible = false;
+                        };
+                        treeContextMenu.MenuItems.Add(item);
+                    }
+                    else
+                    {
+                        MenuItem item = new MenuItem("Unhide");
+                        item.Click += delegate
+                        {
+                            hardwareNode.IsVisible = true;
                         };
                         treeContextMenu.MenuItems.Add(item);
                     }

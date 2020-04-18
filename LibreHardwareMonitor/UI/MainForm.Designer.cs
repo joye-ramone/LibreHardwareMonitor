@@ -331,7 +331,7 @@ namespace LibreHardwareMonitor.UI
             // hiddenMenuItem
             //
             this.hiddenMenuItem.Index = 2;
-            this.hiddenMenuItem.Text = "Show Hidden Sensors";
+            this.hiddenMenuItem.Text = "Show Hidden Elements";
             //
             // plotMenuItem
             //
