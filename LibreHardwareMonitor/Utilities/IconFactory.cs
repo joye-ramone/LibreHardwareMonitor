@@ -168,6 +168,7 @@ namespace LibreHardwareMonitor.Utilities
             dir.Entries[0].ImageOffset = dir.Size;
 
             BinaryWriter.BaseStream.Position = 0;
+
             dir.Write(BinaryWriter);
             image.Write(BinaryWriter);
 

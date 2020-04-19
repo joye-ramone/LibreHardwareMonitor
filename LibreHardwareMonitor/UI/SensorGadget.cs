@@ -16,22 +16,26 @@ using LibreHardwareMonitor.Utilities;
 
 namespace LibreHardwareMonitor.UI
 {
-    public class SensorGadget : Gadget
+    public sealed class SensorGadget : Gadget
     {
         private const int TopBorder = 6;
         private const int BottomBorder = 7;
         private const int LeftBorder = 6;
         private const int RightBorder = 7;
 
-        private readonly UnitManager _unitManager;
-        private Image _back = Utilities.EmbeddedResources.GetImage("gadget.png");
-        private Image _image;
-        private Image _fore;
-        private Image _barBack = Utilities.EmbeddedResources.GetImage("barback.png");
-        private Image _barFore = Utilities.EmbeddedResources.GetImage("barblue.png");
+        private readonly Image _back = Utilities.EmbeddedResources.GetImage("gadget.png");
+        private readonly Image _barBack = Utilities.EmbeddedResources.GetImage("barback.png");
+        private readonly Image _barFore = Utilities.EmbeddedResources.GetImage("barblue.png");
+
         private Image _background = new Bitmap(1, 1);
+
+        private readonly Image _image;
+        private readonly Image _fore;
+
         private readonly float _scale;
+
         private float _fontSize;
+
         private int _iconSize;
         private int _hardwareLineHeight;
         private int _sensorLineHeight;
@@ -42,20 +46,25 @@ namespace LibreHardwareMonitor.UI
         private int _progressWidth;
 
         private readonly IDictionary<IHardware, IList<ISensor>> _sensors = new SortedDictionary<IHardware, IList<ISensor>>(new HardwareComparer());
+
+        private readonly UnitManager _unitManager;
         private readonly PersistentSettings _settings;
         private readonly UserOption _hardwareNames;
 
         private Font _largeFont;
         private Font _smallFont;
-        private Brush _darkWhite;
-        private StringFormat _stringFormat;
-        private StringFormat _trimStringFormat;
-        private StringFormat _alignRightStringFormat;
+
+        private readonly Brush _darkWhite;
+
+        private readonly StringFormat _stringFormat;
+        private readonly StringFormat _trimStringFormat;
+        private readonly StringFormat _alignRightStringFormat;
 
         public SensorGadget(IComputer computer, PersistentSettings settings, UnitManager unitManager)
         {
             _unitManager = unitManager;
             _settings = settings;
+
             computer.HardwareAdded += HardwareAdded;
             computer.HardwareRemoved += HardwareRemoved;
 
@@ -130,8 +139,10 @@ namespace LibreHardwareMonitor.UI
 
             SetFontSize(settings.GetValue("sensorGadget.FontSize", 7.5f));
             Resize(settings.GetValue("sensorGadget.Width", Size.Width));
+            Opacity = (byte)settings.GetValue("sensorGadget.Opacity", 255);
 
             ContextMenu contextMenu = new ContextMenu();
+
             MenuItem hardwareNamesItem = new MenuItem("Hardware Names");
             contextMenu.MenuItems.Add(hardwareNamesItem);
             MenuItem fontSizeMenu = new MenuItem("Font Size");
@@ -139,6 +150,7 @@ namespace LibreHardwareMonitor.UI
             {
                 float size;
                 string name;
+
                 switch (i)
                 {
                     case 0: size = 6.5f; name = "Small"; break;
@@ -153,6 +165,7 @@ namespace LibreHardwareMonitor.UI
                 {
                     SetFontSize(size);
                     settings.SetValue("sensorGadget.FontSize", size);
+
                     foreach (MenuItem mi in fontSizeMenu.MenuItems)
                         mi.Checked = mi == item;
                 };
@@ -166,12 +179,9 @@ namespace LibreHardwareMonitor.UI
             MenuItem alwaysOnTopItem = new MenuItem("Always on Top");
             contextMenu.MenuItems.Add(alwaysOnTopItem);
             MenuItem opacityMenu = new MenuItem("Opacity");
-            contextMenu.MenuItems.Add(opacityMenu);
-            Opacity = (byte)settings.GetValue("sensorGadget.Opacity", 255);
-
             for (int i = 0; i < 5; i++)
             {
-                MenuItem item = new MenuItem((20 * (i + 1)).ToString() + " %");
+                MenuItem item = new MenuItem((20 * (i + 1)) + " %");
                 byte o = (byte)(51 * (i + 1));
                 item.Checked = Opacity == o;
                 item.Click += delegate
@@ -183,9 +193,11 @@ namespace LibreHardwareMonitor.UI
                 };
                 opacityMenu.MenuItems.Add(item);
             }
+            contextMenu.MenuItems.Add(opacityMenu);
+
             ContextMenu = contextMenu;
 
-            _hardwareNames = new UserOption("sensorGadget.Hardwarenames", true, hardwareNamesItem, settings);
+            _hardwareNames = new UserOption("sensorGadget.HardwareNames", true, hardwareNamesItem, settings);
             _hardwareNames.Changed += delegate
             {
                 Resize();
@@ -243,48 +255,29 @@ namespace LibreHardwareMonitor.UI
 
         public override void Dispose()
         {
-
             _largeFont.Dispose();
-            _largeFont = null;
 
             _smallFont.Dispose();
-            _smallFont = null;
 
             _darkWhite.Dispose();
-            _darkWhite = null;
 
             _stringFormat.Dispose();
-            _stringFormat = null;
 
             _trimStringFormat.Dispose();
-            _trimStringFormat = null;
 
             _alignRightStringFormat.Dispose();
-            _alignRightStringFormat = null;
 
             _back.Dispose();
-            _back = null;
 
             _barFore.Dispose();
-            _barFore = null;
 
             _barBack.Dispose();
-            _barBack = null;
 
             _background.Dispose();
-            _background = null;
 
-            if (_image != null)
-            {
-                _image.Dispose();
-                _image = null;
-            }
+            _image?.Dispose();
 
-            if (_fore != null)
-            {
-                _fore.Dispose();
-                _fore = null;
-            }
+            _fore?.Dispose();
 
             base.Dispose();
         }
@@ -335,7 +328,6 @@ namespace LibreHardwareMonitor.UI
             if (Contains(sensor))
                 return;
 
-
             // get the right hardware
             IHardware hardware = sensor.Hardware;
             while (hardware.Parent != null)
@@ -356,6 +348,7 @@ namespace LibreHardwareMonitor.UI
             list.Insert(i, sensor);
 
             _settings.SetValue(new Identifier(sensor.Identifier, "gadget").ToString(), true);
+
             Resize();
         }
 
@@ -381,6 +374,7 @@ namespace LibreHardwareMonitor.UI
                     }
                 }
             }
+
             Resize();
         }
 
@@ -412,6 +406,7 @@ namespace LibreHardwareMonitor.UI
             _smallFont = CreateFont(_fontSize, FontStyle.Regular);
 
             double scaledFontSize = _fontSize * _scale;
+
             _iconSize = (int)Math.Round(1.5 * scaledFontSize);
             _hardwareLineHeight = (int)Math.Round(1.66 * scaledFontSize);
             _sensorLineHeight = (int)Math.Round(1.33 * scaledFontSize);
@@ -546,6 +541,8 @@ namespace LibreHardwareMonitor.UI
                   "\"Show in Gadget\" to show the sensor here.",
                   _smallFont, Brushes.White,
                   new Rectangle(x, y - 1, w - RightBorder - x, 0));
+
+                return;
             }
 
             foreach (KeyValuePair<IHardware, IList<ISensor>> pair in _sensors)
@@ -554,6 +551,7 @@ namespace LibreHardwareMonitor.UI
                 {
                     if (y > _topMargin)
                         y += _hardwareLineHeight - _sensorLineHeight;
+
                     x = LeftBorder + 1;
                     g.DrawImage(HardwareTypeImage.Instance.GetImage(pair.Key.HardwareType), new Rectangle(x, y + 1, _iconSize, _iconSize));
                     x += _iconSize + 1;
@@ -565,104 +563,11 @@ namespace LibreHardwareMonitor.UI
                 {
                     int remainingWidth;
 
-
                     if ((sensor.SensorType != SensorType.Load &&
                          sensor.SensorType != SensorType.Control &&
                          sensor.SensorType != SensorType.Level) || !sensor.Value.HasValue)
                     {
-                        string formatted;
-
-                        if (sensor.Value.HasValue)
-                        {
-                            string format = "";
-                            switch (sensor.SensorType)
-                            {
-                                case SensorType.Voltage:
-                                    format = "{0:F3} V";
-                                    break;
-                                case SensorType.Clock:
-                                    format = "{0:F0} MHz";
-                                    break;
-                                case SensorType.Frequency:
-                                    format = "{0:F0} Hz";
-                                    break;
-                                case SensorType.Temperature:
-                                    format = "{0:F1} °C";
-                                    break;
-                                case SensorType.Fan:
-                                    format = "{0:F0} RPM";
-                                    break;
-                                case SensorType.Flow:
-                                    format = "{0:F0} L/h";
-                                    break;
-                                case SensorType.Power:
-                                    format = "{0:F1} W";
-                                    break;
-                                case SensorType.Data:
-                                    format = "{0:F1} GB";
-                                    break;
-                                case SensorType.SmallData:
-                                    format = "{0:F0} MB";
-                                    break;
-                                case SensorType.Factor:
-                                    format = "{0:F3}";
-                                    break;
-                            }
-
-                            if (sensor.SensorType == SensorType.Temperature && _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
-                            {
-                                formatted = $"{UnitManager.CelsiusToFahrenheit(sensor.Value):F1} °F";
-                            }
-                            else if (sensor.SensorType == SensorType.Throughput)
-                            {
-                                string result;
-                                switch (sensor.Name)
-                                {
-                                    case "Connection Speed":
-                                        {
-                                            switch (sensor.Value)
-                                            {
-                                                case 100000000:
-                                                    result = "100Mbps";
-                                                    break;
-                                                case 1000000000:
-                                                    result = "1Gbps";
-                                                    break;
-                                                default:
-                                                    {
-                                                        if (sensor.Value < 1024)
-                                                            result = $"{sensor.Value:F0} bps";
-                                                        else if (sensor.Value < 1048576)
-                                                            result = $"{sensor.Value / 1024:F1} Kbps";
-                                                        else if (sensor.Value < 1073741824)
-                                                            result = $"{sensor.Value / 1048576:F1} Mbps";
-                                                        else
-                                                            result = $"{sensor.Value / 1073741824:F1} Gbps";
-                                                    }
-                                                    break;
-                                            }
-                                        }
-                                        break;
-                                    default:
-                                        {
-                                            if (sensor.Value < 1048576)
-                                                result = $"{sensor.Value / 1024:F1} KB/s";
-                                            else
-                                                result = $"{sensor.Value / 1048576:F1} MB/s";
-                                        }
-                                        break;
-                                }
-                                formatted = result;
-                            }
-                            else
-                            {
-                                formatted = string.Format(format, sensor.Value);
-                            }
-                        }
-                        else
-                        {
-                            formatted = "-";
-                        }
+                        string formatted = GetFormattedValue(sensor);
 
                         g.DrawString(formatted, _smallFont, _darkWhite, new RectangleF(-1, y - 1, w - _rightMargin + 3, 0), _alignRightStringFormat);
 
@@ -671,30 +576,131 @@ namespace LibreHardwareMonitor.UI
                     else
                     {
                         DrawProgress(g, w - _progressWidth - _rightMargin, y + 0.35f * _sensorLineHeight, _progressWidth, 0.6f * _sensorLineHeight, 0.01f * sensor.Value.Value);
+
                         remainingWidth = w - _progressWidth - _rightMargin;
                     }
 
                     remainingWidth -= _leftMargin + 2;
+
                     if (remainingWidth > 0)
                     {
                         g.DrawString(sensor.Name, _smallFont, _darkWhite, new RectangleF(_leftMargin - 1, y - 1, remainingWidth, 0), _trimStringFormat);
                     }
+
                     y += _sensorLineHeight;
                 }
             }
+        }
+
+        private string GetFormattedValue(ISensor sensor)
+        {
+            string formatted;
+
+            if (sensor.Value.HasValue)
+            {
+                string format = "";
+                switch (sensor.SensorType)
+                {
+                    case SensorType.Voltage:
+                        format = "{0:F3} V";
+                        break;
+                    case SensorType.Clock:
+                        format = "{0:F0} MHz";
+                        break;
+                    case SensorType.Frequency:
+                        format = "{0:F0} Hz";
+                        break;
+                    case SensorType.Temperature:
+                        format = "{0:F1} °C";
+                        break;
+                    case SensorType.Fan:
+                        format = "{0:F0} RPM";
+                        break;
+                    case SensorType.Flow:
+                        format = "{0:F0} L/h";
+                        break;
+                    case SensorType.Power:
+                        format = "{0:F1} W";
+                        break;
+                    case SensorType.Data:
+                        format = "{0:F1} GB";
+                        break;
+                    case SensorType.SmallData:
+                        format = "{0:F0} MB";
+                        break;
+                    case SensorType.Factor:
+                        format = "{0:F3}";
+                        break;
+                }
+
+                if (sensor.SensorType == SensorType.Temperature && _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
+                {
+                    formatted = $"{UnitManager.CelsiusToFahrenheit(sensor.Value):F1} °F";
+                }
+                else if (sensor.SensorType == SensorType.Throughput)
+                {
+                    string result;
+                    switch (sensor.Name)
+                    {
+                        case "Connection Speed":
+                        {
+                            switch (sensor.Value)
+                            {
+                                case 100000000:
+                                    result = "100Mbps";
+                                    break;
+                                case 1000000000:
+                                    result = "1Gbps";
+                                    break;
+                                default:
+                                {
+                                    if (sensor.Value < 1024)
+                                        result = $"{sensor.Value:F0} bps";
+                                    else if (sensor.Value < 1048576)
+                                        result = $"{sensor.Value / 1024:F1} Kbps";
+                                    else if (sensor.Value < 1073741824)
+                                        result = $"{sensor.Value / 1048576:F1} Mbps";
+                                    else
+                                        result = $"{sensor.Value / 1073741824:F1} Gbps";
+                                }
+                                    break;
+                            }
+                        }
+                            break;
+                        default:
+                        {
+                            if (sensor.Value < 1048576)
+                                result = $"{sensor.Value / 1024:F1} KB/s";
+                            else
+                                result = $"{sensor.Value / 1048576:F1} MB/s";
+                        }
+                            break;
+                    }
+
+                    formatted = result;
+                }
+                else
+                {
+                    formatted = string.Format(format, sensor.Value);
+                }
+            }
+            else
+            {
+                formatted = "-";
+            }
+
+            return formatted;
         }
 
         private class HardwareComparer : IComparer<IHardware>
         {
             public int Compare(IHardware x, IHardware y)
             {
-                switch (x)
-                {
-                    case null when y == null:
-                        return 0;
-                    case null:
-                        return -1;
-                }
+                if (x == null && y == null)
+                    return 0;
+
+                if (x == null)
+                    return -1;
 
                 if (y == null)
                     return 1;

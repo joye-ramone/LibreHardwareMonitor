@@ -16,13 +16,14 @@ namespace LibreHardwareMonitor.UI
 {
     public sealed class GadgetWindow : NativeWindow, IDisposable
     {
+        private readonly MethodInfo _commandDispatch;
+
         private bool _visible;
         private bool _alwaysOnTop;
         private byte _opacity = 255;
         private Point _location = new Point(100, 100);
         private Size _size = new Size(130, 84);
-        private readonly MethodInfo _commandDispatch;
-        private IntPtr _handleBitmapDC;
+        private IntPtr _handleBitmap;
         private Size _bufferSize;
         private Graphics _graphics;
 
@@ -209,9 +210,9 @@ namespace LibreHardwareMonitor.UI
 
         private void CreateBuffer()
         {
-            IntPtr handleScreenDC = NativeMethods.GetDC(IntPtr.Zero);
-            _handleBitmapDC = NativeMethods.CreateCompatibleDC(handleScreenDC);
-            NativeMethods.ReleaseDC(IntPtr.Zero, handleScreenDC);
+            IntPtr handleScreen = NativeMethods.GetDC(IntPtr.Zero);
+            _handleBitmap = NativeMethods.CreateCompatibleDC(handleScreen);
+            NativeMethods.ReleaseDC(IntPtr.Zero, handleScreen);
             _bufferSize = _size;
 
             BITMAPINFO info = new BITMAPINFO();
@@ -221,11 +222,11 @@ namespace LibreHardwareMonitor.UI
             info.BitCount = 32;
             info.Planes = 1;
 
-            IntPtr hBmp = NativeMethods.CreateDIBSection(_handleBitmapDC, ref info, 0, out IntPtr _, IntPtr.Zero, 0);
-            IntPtr hBmpOld = NativeMethods.SelectObject(_handleBitmapDC, hBmp);
+            IntPtr hBmp = NativeMethods.CreateDIBSection(_handleBitmap, ref info, 0, out IntPtr _, IntPtr.Zero, 0);
+            IntPtr hBmpOld = NativeMethods.SelectObject(_handleBitmap, hBmp);
             NativeMethods.DeleteObject(hBmpOld);
 
-            _graphics = Graphics.FromHdc(_handleBitmapDC);
+            _graphics = Graphics.FromHdc(_handleBitmap);
 
             if (Environment.OSVersion.Version.Major > 5)
             {
@@ -237,7 +238,7 @@ namespace LibreHardwareMonitor.UI
         private void DisposeBuffer()
         {
             _graphics.Dispose();
-            NativeMethods.DeleteDC(_handleBitmapDC);
+            NativeMethods.DeleteDC(_handleBitmap);
         }
 
         public void Dispose()
@@ -261,7 +262,7 @@ namespace LibreHardwareMonitor.UI
             Paint(this, new PaintEventArgs(_graphics, new Rectangle(Point.Empty, _size)));
             Point pointSource = Point.Empty;
             BlendFunction blend = CreateBlendFunction();
-            NativeMethods.UpdateLayeredWindow(Handle, IntPtr.Zero, IntPtr.Zero, ref _size, _handleBitmapDC, ref pointSource, 0, ref blend, ULW_ALPHA);
+            NativeMethods.UpdateLayeredWindow(Handle, IntPtr.Zero, IntPtr.Zero, ref _size, _handleBitmap, ref pointSource, 0, ref blend, ULW_ALPHA);
             // make sure the window is at the right location
             NativeMethods.SetWindowPos(Handle, IntPtr.Zero, _location.X, _location.Y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSENDCHANGING);
         }
@@ -575,7 +576,9 @@ namespace LibreHardwareMonitor.UI
             Location = location;
             HitResult = hitResult;
         }
+
         public Point Location { get; }
+
         public HitResult HitResult { get; set; }
     }
 }

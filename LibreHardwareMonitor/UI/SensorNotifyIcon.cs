@@ -22,18 +22,21 @@ namespace LibreHardwareMonitor.UI
         private readonly NotifyIconAdv _notifyIcon;
         private readonly Bitmap _bitmap;
         private readonly Graphics _graphics;
+
         private Color _color;
         private Color _darkColor;
         private Brush _brush;
         private Brush _darkBrush;
+
         private readonly Pen _pen;
         private readonly Font _font;
         private readonly Font _smallFont;
 
         public SensorNotifyIcon(SystemTray sensorSystemTray, ISensor sensor, PersistentSettings settings, UnitManager unitManager)
         {
-            _unitManager = unitManager;
             Sensor = sensor;
+            _unitManager = unitManager;
+
             _notifyIcon = new NotifyIconAdv();
 
             Color defaultColor = Color.White;
@@ -42,7 +45,6 @@ namespace LibreHardwareMonitor.UI
 
             Color = settings.GetValue(new Identifier(sensor.Identifier, "traycolor").ToString(), defaultColor);
 
-            _pen = new Pen(Color.FromArgb(96, Color.Black));
             ContextMenu contextMenu = new ContextMenu();
             MenuItem hideShowItem = new MenuItem("Hide/Show");
             hideShowItem.Click += delegate
@@ -64,8 +66,7 @@ namespace LibreHardwareMonitor.UI
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     Color = dialog.Color;
-                    settings.SetValue(new Identifier(sensor.Identifier,
-                      "traycolor").ToString(), Color);
+                    settings.SetValue(new Identifier(sensor.Identifier, "traycolor").ToString(), Color);
                 }
             };
             contextMenu.MenuItems.Add(colorItem);
@@ -76,11 +77,14 @@ namespace LibreHardwareMonitor.UI
                 sensorSystemTray.SendExitCommand();
             };
             contextMenu.MenuItems.Add(exitItem);
+
             _notifyIcon.ContextMenu = contextMenu;
             _notifyIcon.DoubleClick += delegate
             {
                 sensorSystemTray.SendHideShowCommand();
             };
+
+            _pen = new Pen(Color.FromArgb(96, Color.Black));
 
             // get the default dpi to create an icon with the correct size
             float dpiX, dpiY;
@@ -113,6 +117,7 @@ namespace LibreHardwareMonitor.UI
 
             _bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
             _graphics = Graphics.FromImage(_bitmap);
+
             if (Environment.OSVersion.Version.Major > 5)
             {
                 _graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
@@ -288,7 +293,9 @@ namespace LibreHardwareMonitor.UI
 
             string hardwareName = Sensor.Hardware.Name;
             hardwareName = hardwareName.Substring(0, Math.Min(63 - formattedValue.Length, hardwareName.Length));
+
             string text = hardwareName + formattedValue;
+
             if (text.Length > 63)
                 text = null;
 

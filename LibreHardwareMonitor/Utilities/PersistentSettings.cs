@@ -18,7 +18,7 @@ namespace LibreHardwareMonitor.Utilities
 {
     public class PersistentSettings : ISettings
     {
-        private readonly IDictionary<string, string> _settings = new Dictionary<string, string>();
+        private readonly IDictionary<string, string> _settings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public void Load(string fileName)
         {

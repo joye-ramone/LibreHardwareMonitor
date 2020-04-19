@@ -14,12 +14,14 @@ namespace LibreHardwareMonitor.UI
 {
     public class SystemTray : IDisposable
     {
-        private IComputer _computer;
+        private readonly IComputer _computer;
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
+
         private readonly List<SensorNotifyIcon> _sensorList = new List<SensorNotifyIcon>();
-        private bool _mainIconEnabled;
         private readonly NotifyIconAdv _mainIcon;
+
+        private bool _mainIconEnabled;
 
         public SystemTray(IComputer computer, PersistentSettings settings, UnitManager unitManager)
         {
@@ -94,6 +96,7 @@ namespace LibreHardwareMonitor.UI
         {
             foreach (SensorNotifyIcon icon in _sensorList)
                 icon.Dispose();
+
             _mainIcon.Dispose();
         }
 
@@ -116,9 +119,10 @@ namespace LibreHardwareMonitor.UI
             if (Contains(sensor))
                 return;
 
-
             _sensorList.Add(new SensorNotifyIcon(this, sensor, _settings, _unitManager));
+
             UpdateMainIconVisibility();
+
             _settings.SetValue(new Identifier(sensor.Identifier, "tray").ToString(), true);
         }
 
@@ -143,7 +147,9 @@ namespace LibreHardwareMonitor.UI
             if (instance != null)
             {
                 _sensorList.Remove(instance);
+
                 UpdateMainIconVisibility();
+
                 instance.Dispose();
             }
         }
@@ -178,6 +184,7 @@ namespace LibreHardwareMonitor.UI
                 if (_mainIconEnabled != value)
                 {
                     _mainIconEnabled = value;
+
                     UpdateMainIconVisibility();
                 }
             }

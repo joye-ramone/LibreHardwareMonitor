@@ -44,6 +44,7 @@ namespace LibreHardwareMonitor.UI
                     if (_name != null)
                         _settings.SetValue(_name, value);
                     _menuItem.Checked = value;
+
                     _changed?.Invoke(this, null);
                 }
             }

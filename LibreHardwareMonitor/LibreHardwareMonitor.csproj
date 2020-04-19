@@ -118,6 +118,7 @@
     </Compile>
     <Compile Include="UI\SensorGadget.cs" />
     <Compile Include="UI\SensorNotifyIcon.cs" />
+    <Compile Include="UI\SensorTypeImage.cs" />
     <Compile Include="UI\ShowDesktop.cs" />
     <Compile Include="UI\SplitContainerAdv.cs">
       <SubType>Component</SubType>
@@ -151,10 +152,10 @@
     <Compile Include="UI\SensorNode.cs" />
     <Compile Include="Utilities\EmbeddedResources.cs" />
     <Compile Include="Utilities\IconFactory.cs" />
-    <Compile Include="WMI\Hardware.cs" />
-    <Compile Include="WMI\IWmiObject.cs" />
-    <Compile Include="WMI\Sensor.cs" />
-    <Compile Include="WMI\WmiProvider.cs">
+    <Compile Include="Wmi\Hardware.cs" />
+    <Compile Include="Wmi\IWmiObject.cs" />
+    <Compile Include="Wmi\Sensor.cs" />
+    <Compile Include="Wmi\WmiProvider.cs">
       <SubType>Component</SubType>
     </Compile>
   </ItemGroup>

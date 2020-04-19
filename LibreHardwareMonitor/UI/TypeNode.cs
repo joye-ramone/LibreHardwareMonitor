@@ -18,68 +18,12 @@ namespace LibreHardwareMonitor.UI
         public TypeNode(SensorType sensorType, Identifier parentId, PersistentSettings settings)
         {
             SensorType = sensorType;
+
             _expandedIdentifier = new Identifier(parentId, SensorType.ToString(), ".expanded").ToString();
             _settings = settings;
 
-            switch (sensorType)
-            {
-                case SensorType.Voltage:
-                    Image = Utilities.EmbeddedResources.GetImage("voltage.png");
-                    Text = "Voltages";
-                    break;
-                case SensorType.Clock:
-                    Image = Utilities.EmbeddedResources.GetImage("clock.png");
-                    Text = "Clocks";
-                    break;
-                case SensorType.Load:
-                    Image = Utilities.EmbeddedResources.GetImage("load.png");
-                    Text = "Load";
-                    break;
-                case SensorType.Temperature:
-                    Image = Utilities.EmbeddedResources.GetImage("temperature.png");
-                    Text = "Temperatures";
-                    break;
-                case SensorType.Fan:
-                    Image = Utilities.EmbeddedResources.GetImage("fan.png");
-                    Text = "Fans";
-                    break;
-                case SensorType.Flow:
-                    Image = Utilities.EmbeddedResources.GetImage("flow.png");
-                    Text = "Flows";
-                    break;
-                case SensorType.Control:
-                    Image = Utilities.EmbeddedResources.GetImage("control.png");
-                    Text = "Controls";
-                    break;
-                case SensorType.Level:
-                    Image = Utilities.EmbeddedResources.GetImage("level.png");
-                    Text = "Levels";
-                    break;
-                case SensorType.Power:
-                    Image = Utilities.EmbeddedResources.GetImage("power.png");
-                    Text = "Powers";
-                    break;
-                case SensorType.Data:
-                    Image = Utilities.EmbeddedResources.GetImage("data.png");
-                    Text = "Data";
-                    break;
-                case SensorType.SmallData:
-                    Image = Utilities.EmbeddedResources.GetImage("data.png");
-                    Text = "Data";
-                    break;
-                case SensorType.Factor:
-                    Image = Utilities.EmbeddedResources.GetImage("factor.png");
-                    Text = "Factors";
-                    break;
-                case SensorType.Frequency:
-                    Image = Utilities.EmbeddedResources.GetImage("clock.png");
-                    Text = "Frequencies";
-                    break;
-                case SensorType.Throughput:
-                    Image = Utilities.EmbeddedResources.GetImage("throughput.png");
-                    Text = "Throughput";
-                    break;
-            }
+            Image = SensorTypeInfo.Instance.GetImage(sensorType);
+            Text = SensorTypeInfo.Instance.GetName(sensorType);
 
             _expanded = settings.GetValue(_expandedIdentifier, true);
         }

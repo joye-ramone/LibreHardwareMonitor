@@ -25,21 +25,24 @@ namespace LibreHardwareMonitor.UI
 {
     public sealed partial class MainForm : Form
     {
-        private int _delayCount;
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
         private readonly Computer _computer;
         private readonly ComputerNode _root;
-        private IDictionary<ISensor, Color> _sensorPlotColors = new Dictionary<ISensor, Color>();
-        private readonly Color[] _plotColorPalette;
-        private readonly SystemTray _systemTray;
+
         private readonly StartupManager _startupManager = new StartupManager();
         private readonly UpdateVisitor _updateVisitor = new UpdateVisitor();
-        private readonly SensorGadget _gadget;
-        private Form _plotForm;
-        private readonly PlotPanel _plotPanel;
 
-        private UserOption _showPlot;
+        private readonly SystemTray _systemTray;
+        private readonly SensorGadget _gadget;
+
+        private readonly Color[] _plotColorPalette;
+        private readonly PlotPanel _plotPanel;
+        private readonly Form _plotForm;
+
+        private readonly UserOption _showPlot;
+        private readonly UserRadioGroup _plotLocation;
+
         private readonly UserOption _minimizeToTray;
         private readonly UserOption _minimizeOnClose;
         private readonly UserOption _autoStart;
@@ -53,18 +56,21 @@ namespace LibreHardwareMonitor.UI
         private readonly UserOption _readNicSensors;
 
         private readonly UserOption _showGadget;
-        private UserRadioGroup _plotLocation;
-        private readonly WmiProvider _wmiProvider;
 
         private readonly UserOption _runWebServer;
         private readonly UserOption _logSensors;
         private readonly UserRadioGroup _loggingInterval;
         private readonly UserRadioGroup _sensorValuesTimeWindow;
+
+        private readonly WmiProvider _wmiProvider;
         private readonly Logger _logger;
 
-        private bool _selectionDragging;
+        private readonly Keys _showHideHotKey = Keys.Control | Keys.Shift | Keys.Oemtilde;
 
-        private Keys _showHideHotKey = Keys.Control | Keys.Shift | Keys.Oemtilde;
+        private bool _selectionDragging;
+        private int _delayCount;
+
+        private IDictionary<ISensor, Color> _sensorPlotColors = new Dictionary<ISensor, Color>();
 
         public MainForm()
         {
@@ -103,6 +109,12 @@ namespace LibreHardwareMonitor.UI
             };
 
             _plotPanel = new PlotPanel(_settings, _unitManager) { Font = SystemFonts.MessageBoxFont, Dock = DockStyle.Fill };
+            _plotForm = new Form { FormBorderStyle = FormBorderStyle.SizableToolWindow, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual };
+
+            AddOwnedForm(_plotForm);
+
+            _showPlot = new UserOption("plotMenuItem", false, plotMenuItem, _settings);
+            _plotLocation = new UserRadioGroup("plotLocation", 0, new[] { plotWindowMenuItem, plotBottomMenuItem, plotRightMenuItem }, _settings);
 
             nodeCheckBox.IsVisibleValueNeeded += NodeCheckBox_IsVisibleValueNeeded;
             nodeTextBoxText.DrawText += NodeTextBoxText_DrawText;
@@ -142,7 +154,7 @@ namespace LibreHardwareMonitor.UI
             _systemTray.ExitCommand += ExitClick;
 
             int p = (int)Environment.OSVersion.Platform;
-            if ((p == 4) || (p == 128))
+            if (p == 4 || p == 128)
             { // Unix
                 treeView.RowHeight = Math.Max(treeView.RowHeight, 18);
                 splitContainer.BorderStyle = BorderStyle.None;
@@ -195,19 +207,19 @@ namespace LibreHardwareMonitor.UI
             UserOption showValue = new UserOption("valueMenuItem", true, valueMenuItem, _settings);
             showValue.Changed += delegate
             {
-                treeView.Columns[1].IsVisible = showValue.Value;
+                value.IsVisible = showValue.Value;
             };
 
             UserOption showMin = new UserOption("minMenuItem", false, minMenuItem, _settings);
             showMin.Changed += delegate
             {
-                treeView.Columns[2].IsVisible = showMin.Value;
+                min.IsVisible = showMin.Value;
             };
 
             UserOption showMax = new UserOption("maxMenuItem", true, maxMenuItem, _settings);
             showMax.Changed += delegate
             {
-                treeView.Columns[3].IsVisible = showMax.Value;
+                max.IsVisible = showMax.Value;
             };
 
             var _ = new UserOption("startMinMenuItem", false, startMinMenuItem, _settings);
@@ -287,6 +299,7 @@ namespace LibreHardwareMonitor.UI
             fahrenheitMenuItem.Checked = !celsiusMenuItem.Checked;
 
             Server = new HttpServer(_root, _settings.GetValue("listenerPort", 8085));
+
             if (Server.PlatformNotSupported)
             {
                 webMenuItemSeparator.Visible = false;
@@ -309,6 +322,7 @@ namespace LibreHardwareMonitor.UI
                 log30sMenuItem, log1minMenuItem, log2minMenuItem, log5minMenuItem,
                 log10minMenuItem, log30minMenuItem, log1hMenuItem, log2hMenuItem,
                 log6hMenuItem}, _settings);
+
             _loggingInterval.Changed += (sender, e) =>
             {
                 switch (_loggingInterval.Value)
@@ -334,6 +348,7 @@ namespace LibreHardwareMonitor.UI
                 timeWindow5minMenuItem, timeWindow10minMenuItem, timeWindow30minMenuItem,
                 timeWindow1hMenuItem, timeWindow2hMenuItem, timeWindow6hMenuItem,
                 timeWindow12hMenuItem, timeWindow24hMenuItem}, _settings);
+
             _sensorValuesTimeWindow.Changed += (sender, e) =>
             {
                 TimeSpan timeWindow = TimeSpan.Zero;
@@ -419,8 +434,6 @@ namespace LibreHardwareMonitor.UI
 
         private void InitializePlotForm()
         {
-            _plotForm = new Form { FormBorderStyle = FormBorderStyle.SizableToolWindow, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual };
-            AddOwnedForm(_plotForm);
             _plotForm.Bounds = new Rectangle
             {
                 X = _settings.GetValue("plotForm.Location.X", -100000),
@@ -428,9 +441,6 @@ namespace LibreHardwareMonitor.UI
                 Width = _settings.GetValue("plotForm.Width", 600),
                 Height = _settings.GetValue("plotForm.Height", 400)
             };
-
-            _showPlot = new UserOption("plotMenuItem", false, plotMenuItem, _settings);
-            _plotLocation = new UserRadioGroup("plotLocation", 0, new[] { plotWindowMenuItem, plotBottomMenuItem, plotRightMenuItem }, _settings);
 
             _showPlot.Changed += delegate
             {
@@ -508,6 +518,7 @@ namespace LibreHardwareMonitor.UI
                 Rectangle bounds = new Rectangle(_plotForm.Location, _plotForm.Size);
                 Screen screen = Screen.FromRectangle(bounds);
                 Rectangle intersection = Rectangle.Intersect(screen.WorkingArea, bounds);
+
                 if (intersection.Width < Math.Min(16, bounds.Width) ||
                     intersection.Height < Math.Min(16, bounds.Height))
                 {
@@ -525,15 +536,6 @@ namespace LibreHardwareMonitor.UI
                     _plotForm.Hide();
             };
         }
-
-        //private void InsertSorted(IList<Node> nodes, HardwareNode node)
-        //{
-        //    int i = 0;
-        //    while (i < nodes.Count && nodes[i] is HardwareNode && ((HardwareNode)nodes[i]).Hardware.HardwareType <= node.Hardware.HardwareType)
-        //        i++;
-
-        //    nodes.Insert(i, node);
-        //}
 
         private void SubHardwareAdded(IHardware hardware, Node node)
         {
@@ -648,6 +650,7 @@ namespace LibreHardwareMonitor.UI
                 if (node.Tag is SensorNode sensorNode && sensorNode.Plot && sensorNode.PenColor.HasValue)
                     colors.Add(sensorNode.Sensor, sensorNode.PenColor.Value);
             }
+
             _sensorPlotColors = colors;
             _plotPanel.SetSensors(selected, colors);
         }
@@ -679,6 +682,7 @@ namespace LibreHardwareMonitor.UI
 
             _systemTray.Redraw();
             _gadget?.Redraw();
+
             _wmiProvider?.Update();
 
             if (_logSensors != null && _logSensors.Value && _delayCount >= 4)

@@ -12,17 +12,16 @@ namespace LibreHardwareMonitor.UI
 {
     public class HardwareTypeImage
     {
+        public static HardwareTypeImage Instance { get; } = new HardwareTypeImage();
+
         private readonly IDictionary<HardwareType, Image> _images = new Dictionary<HardwareType, Image>();
 
         private HardwareTypeImage() { }
-
-        public static HardwareTypeImage Instance { get; } = new HardwareTypeImage();
 
         public Image GetImage(HardwareType hardwareType)
         {
             if (_images.TryGetValue(hardwareType, out Image image))
                 return image;
-
 
             switch (hardwareType)
             {
@@ -63,7 +62,9 @@ namespace LibreHardwareMonitor.UI
                     image = new Bitmap(1, 1);
                     break;
             }
+
             _images.Add(hardwareType, image);
+
             return image;
         }
     }

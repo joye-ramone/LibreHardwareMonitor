@@ -161,6 +161,7 @@ namespace LibreHardwareMonitor.UI
                 if (value != _window.Visible)
                 {
                     _window.Visible = value;
+
                     VisibleChanged?.Invoke(this, EventArgs.Empty);
 
                     if (value)

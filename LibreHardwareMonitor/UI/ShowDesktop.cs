@@ -12,9 +12,12 @@ namespace LibreHardwareMonitor.UI
 {
     public class ShowDesktop : IDisposable
     {
+        public static ShowDesktop Instance { get; } = new ShowDesktop();
+
         private readonly NativeWindow _referenceWindow;
         private readonly string _referenceWindowCaption = "LibreHardwareMonitorShowDesktopReferenceWindow";
         private readonly System.Threading.Timer _timer;
+
         private bool _showDesktop;
 
         /// <summary>
@@ -60,15 +63,13 @@ namespace LibreHardwareMonitor.UI
             remove
             {
                 ShowDesktopChangedEvent -= value;
+
                 // stop the monitor timer if nobody is interested
                 if (ShowDesktopChangedEvent == null)
                     StopTimer();
             }
         }
 
-        public static ShowDesktop Instance { get; } = new ShowDesktop();
-
-        /// <inheritdoc />
         public void Dispose()
         {
             _timer?.Dispose();
@@ -86,12 +87,11 @@ namespace LibreHardwareMonitor.UI
         }
 
         // the desktop worker window (if available) can hide the reference window
-        private IntPtr GetDesktopWorkerWindow()
+        private static IntPtr GetDesktopWorkerWindow()
         {
             IntPtr shellWindow = NativeMethods.GetShellWindow();
             if (shellWindow == IntPtr.Zero)
                 return IntPtr.Zero;
-
 
             NativeMethods.GetWindowThreadProcessId(shellWindow, out int shellId);
 
@@ -119,6 +119,7 @@ namespace LibreHardwareMonitor.UI
             bool showDesktopDetected;
 
             IntPtr workerWindow = GetDesktopWorkerWindow();
+
             if (workerWindow != IntPtr.Zero)
             {
                 // search if the reference window is behind the worker window
@@ -134,6 +135,7 @@ namespace LibreHardwareMonitor.UI
             if (_showDesktop != showDesktopDetected)
             {
                 _showDesktop = showDesktopDetected;
+
                 ShowDesktopChangedEvent?.Invoke(_showDesktop);
             }
         }

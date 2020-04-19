@@ -29,6 +29,7 @@ namespace LibreHardwareMonitor.UI
             for (int i = 0; i < _menuItems.Length; i++)
             {
                 _menuItems[i].Checked = i == _value;
+
                 int index = i;
                 _menuItems[i].Click += delegate
                 {
@@ -49,6 +50,7 @@ namespace LibreHardwareMonitor.UI
                         _settings.SetValue(_name, value);
                     for (int i = 0; i < _menuItems.Length; i++)
                         _menuItems[i].Checked = i == value;
+
                     _changed?.Invoke(this, null);
                 }
             }
