@@ -5,6 +5,7 @@
 // All Rights Reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 
@@ -12,8 +13,9 @@ namespace LibreHardwareMonitor.UI
 {
     public class Node
     {
+        protected readonly NodeCollection InternalNodes;
+
         private Node _parent;
-        private readonly NodeCollection _nodes;
         private string _text;
         private bool _visible;
 
@@ -42,7 +44,7 @@ namespace LibreHardwareMonitor.UI
         public Node(string text)
         {
             _text = text;
-            _nodes = new NodeCollection(this);
+            InternalNodes = new NodeCollection(this);
             _visible = true;
         }
 
@@ -55,16 +57,13 @@ namespace LibreHardwareMonitor.UI
             {
                 if (value != _parent)
                 {
-                    _parent?._nodes.Remove(this);
-                    value?._nodes.Add(this);
+                    _parent?.InternalNodes.Remove(this);
+                    value?.InternalNodes.Add(this);
                 }
             }
         }
 
-        public Collection<Node> Nodes
-        {
-            get { return _nodes; }
-        }
+        public IEnumerable<Node> Nodes => InternalNodes;
 
         public virtual string Text
         {
@@ -89,9 +88,9 @@ namespace LibreHardwareMonitor.UI
                     if (model != null && _parent != null)
                     {
                         int index = 0;
-                        for (int i = 0; i < _parent._nodes.Count; i++)
+                        for (int i = 0; i < _parent.InternalNodes.Count; i++)
                         {
-                            Node node = _parent._nodes[i];
+                            Node node = _parent.InternalNodes[i];
                             if (node == this)
                                 break;
                             if (node.IsVisible || model.ForceVisible)
@@ -114,7 +113,19 @@ namespace LibreHardwareMonitor.UI
             }
         }
 
-        private class NodeCollection : Collection<Node>
+        public virtual void AddChild(Node node)
+        {
+            InternalNodes.Add(node);
+        }
+
+        public virtual void RemoveChild(Node node)
+        {
+            InternalNodes.Remove(node);
+        }
+
+        public int Count => InternalNodes.Count;
+
+        protected class NodeCollection : Collection<Node>
         {
             private readonly Node _owner;
 
@@ -136,8 +147,9 @@ namespace LibreHardwareMonitor.UI
 
                 if (item._parent != _owner)
                 {
-                    item._parent?._nodes.Remove(item);
+                    item._parent?.InternalNodes.Remove(item);
                     item._parent = _owner;
+
                     base.InsertItem(index, item);
 
                     _owner.NodeAdded(item);
@@ -151,6 +163,7 @@ namespace LibreHardwareMonitor.UI
             {
                 Node item = this[index];
                 item._parent = null;
+
                 base.RemoveItem(index);
 
                 _owner.NodeRemoved(item);

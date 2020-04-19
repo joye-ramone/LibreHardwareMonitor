@@ -18,16 +18,16 @@ namespace LibreHardwareMonitor.UI
         private readonly Node _root;
         private bool _forceVisible;
 
-        public TreeModel()
+        public TreeModel(Node visibleRoot)
         {
             _root = new Node("ModelRoot") { Model = this };
+            _root.AddChild(visibleRoot);
         }
 
         public TreePath GetPath(Node node)
         {
             if (node == _root)
                 return TreePath.Empty;
-
 
             Stack<object> stack = new Stack<object>();
             while (node != _root)
@@ -38,10 +38,10 @@ namespace LibreHardwareMonitor.UI
             return new TreePath(stack.ToArray());
         }
 
-        public Collection<Node> Nodes
-        {
-            get { return _root.Nodes; }
-        }
+        //public IEnumerable<Node> Nodes
+        //{
+        //    get { return _root.Nodes; }
+        //}
 
         private Node GetNode(TreePath treePath)
         {
@@ -64,11 +64,6 @@ namespace LibreHardwareMonitor.UI
                 var nodesToReturn = node
                     .Nodes
                     .Where(n => _forceVisible || n.IsVisible);
-
-                if (node is ComputerNode) // || node is HardwareNode custom sorting supported only on root level for now
-                {
-                    nodesToReturn = nodesToReturn.OrderBy(i => ((HardwareNode)i).SortIndex);
-                }
 
                 foreach (Node n in nodesToReturn)
                 {

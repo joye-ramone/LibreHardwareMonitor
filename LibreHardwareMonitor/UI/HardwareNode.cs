@@ -28,6 +28,7 @@ namespace LibreHardwareMonitor.UI
         {
             _settings = settings;
             _unitManager = unitManager;
+
             Hardware = hardware;
 
             Image = HardwareTypeImage.Instance.GetImage(hardware.HardwareType);
@@ -48,6 +49,8 @@ namespace LibreHardwareMonitor.UI
             _expandedIdentifier = new Identifier(hardware.Identifier, "expanded").ToString();
             _expanded = settings.GetValue(_expandedIdentifier, true);
         }
+
+        public int SortIndex { get; set; }
 
         public override string Text
         {
@@ -84,26 +87,54 @@ namespace LibreHardwareMonitor.UI
             }
         }
 
-        public int SortIndex { get; set; }
-
-        private void UpdateNode(TypeNode node)
+        private void UpdateTypeNode(TypeNode node)
         {
-            if (node.Nodes.Count > 0)
+            if (node.Count > 0)
             {
-                if (!Nodes.Contains(node))
+                if (!InternalNodes.Contains(node))
                 {
-                    int i = 0;
-                    while (i < Nodes.Count && ((TypeNode)Nodes[i]).SensorType < node.SensorType)
-                        i++;
-
-                    Nodes.Insert(i, node);
+                    AddChild(node);
                 }
             }
             else
             {
-                if (Nodes.Contains(node))
-                    Nodes.Remove(node);
+                if (InternalNodes.Contains(node))
+                {
+                    RemoveChild(node);
+                }
             }
+        }
+
+        public override void AddChild(Node node)
+        {
+            if (node is TypeNode typeNode)
+            {
+                int i = 0;
+                while (i < InternalNodes.Count && ((TypeNode)InternalNodes[i]).SensorType < typeNode.SensorType)
+                    i++;
+
+                InternalNodes.Insert(i, node);
+            }
+            else
+                base.AddChild(node);
+        }
+
+        private void SensorAdded(ISensor sensor)
+        {
+            foreach (TypeNode typeNode in _typeNodes)
+            {
+                if (typeNode.SensorType == sensor.SensorType)
+                {
+                    SensorNode sensorNode = new SensorNode(sensor, _settings, _unitManager);
+
+                    sensorNode.PlotSelectionChanged += SensorPlotSelectionChanged;
+                    typeNode.AddChild(sensorNode);
+
+                    UpdateTypeNode(typeNode);
+                }
+            }
+
+            PlotSelectionChanged?.Invoke(this, null);
         }
 
         private void SensorRemoved(ISensor sensor)
@@ -113,49 +144,33 @@ namespace LibreHardwareMonitor.UI
                 if (typeNode.SensorType == sensor.SensorType)
                 {
                     SensorNode sensorNode = null;
+
                     foreach (Node node in typeNode.Nodes)
                     {
                         if (node is SensorNode n && n.Sensor == sensor)
+                        {
                             sensorNode = n;
+                            break;
+                        }
                     }
+
                     if (sensorNode != null)
                     {
                         sensorNode.PlotSelectionChanged -= SensorPlotSelectionChanged;
-                        typeNode.Nodes.Remove(sensorNode);
-                        UpdateNode(typeNode);
+                        typeNode.RemoveChild(sensorNode);
+
+                        UpdateTypeNode(typeNode);
                     }
+
+                    break;
                 }
             }
+
             PlotSelectionChanged?.Invoke(this, null);
-        }
-
-        private void InsertSorted(Node node, ISensor sensor)
-        {
-            int i = 0;
-            while (i < node.Nodes.Count && ((SensorNode)node.Nodes[i]).Sensor.Index < sensor.Index)
-                i++;
-
-            SensorNode sensorNode = new SensorNode(sensor, _settings, _unitManager);
-            sensorNode.PlotSelectionChanged += SensorPlotSelectionChanged;
-            node.Nodes.Insert(i, sensorNode);
         }
 
         private void SensorPlotSelectionChanged(object sender, EventArgs e)
         {
-            PlotSelectionChanged?.Invoke(this, null);
-        }
-
-        private void SensorAdded(ISensor sensor)
-        {
-            foreach (TypeNode typeNode in _typeNodes)
-            {
-                if (typeNode.SensorType == sensor.SensorType)
-                {
-                    InsertSorted(typeNode, sensor);
-                    UpdateNode(typeNode);
-                }
-            }
-
             PlotSelectionChanged?.Invoke(this, null);
         }
     }

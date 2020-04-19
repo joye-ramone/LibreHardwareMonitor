@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aga.Controls.Tree.NodeControls;
 using LibreHardwareMonitor.Hardware;
 using LibreHardwareMonitor.Utilities;
 
@@ -18,7 +17,7 @@ namespace LibreHardwareMonitor.UI
             Image = EmbeddedResources.GetImage("computer.png");
         }
 
-        protected override void NodeAdded(Node node)
+        public override void AddChild(Node node)
         {
             if (node is HardwareNode hardwareNode)
             {
@@ -27,21 +26,27 @@ namespace LibreHardwareMonitor.UI
                 int storedIndex = _settings.GetValue(identifier, Int32.MaxValue);
                 if (storedIndex == Int32.MaxValue)
                 {
-                    if (Nodes.Count > 1)
+                    if (InternalNodes.Count > 0)
                     {
-                        storedIndex = Hardware().Where(i => i != hardwareNode).Max(i => i.SortIndex) + 1;
+                        storedIndex = Hardware().Max(n => n.SortIndex) + 1;
                     }
                     else storedIndex = 0;
                 }
 
                 hardwareNode.SortIndex = storedIndex;
+
+                InsertAtSortOrder(hardwareNode);
             }
+            else
+                base.AddChild(node);
         }
 
         public void SaveSortOrder()
         {
             // reorder and save it
+
             int index = 0;
+
             foreach (var node in Hardware().OrderBy(i => i.SortIndex))
             {
                 var identifier = new Identifier(node.Hardware.Identifier, "sortIndex").ToString();
@@ -55,44 +60,49 @@ namespace LibreHardwareMonitor.UI
             return Nodes.OfType<HardwareNode>();
         }
 
-        public bool Move(HardwareNode hardwareNode, int dir)
+        public bool Move(HardwareNode targetNode, bool dir)
         {
-            HardwareNode prevNode = null;
-
             IEnumerable<HardwareNode> nodes = Hardware().OrderBy(i => i.SortIndex);
 
-            if (dir > 0)
+            if (dir)
             {
                 nodes = nodes.Reverse();
             }
 
-            foreach (var node in nodes)
+            HardwareNode sourceNode = null;
+
+            foreach (HardwareNode node in nodes)
             {
-                if (node == hardwareNode)
+                if (node == targetNode)
                 {
-                    if (prevNode != null)
-                    {
-                        int a = prevNode.SortIndex;
-                        prevNode.SortIndex = node.SortIndex;
-                        node.SortIndex = a;
-
-                        RefreshTree();
-
-                        return true;
-                    }
                     break;
                 }
 
-                prevNode = node;
+                sourceNode = node;
+            }
+
+            if (sourceNode != null)
+            {
+                int index = sourceNode.SortIndex;
+                sourceNode.SortIndex = targetNode.SortIndex;
+                targetNode.SortIndex = index;
+
+                RemoveChild(targetNode);
+                InsertAtSortOrder(targetNode);
+
+                return true;
             }
 
             return false;
         }
 
-        private void RefreshTree()
+        private void InsertAtSortOrder(HardwareNode hardwareNode)
         {
-            TreeModel model = RootTreeModel();
-            model?.OnStructureChanged(this);
+            int i = 0;
+            while (i < InternalNodes.Count && ((HardwareNode)InternalNodes[i]).SortIndex < hardwareNode.SortIndex)
+                i++;
+
+            InternalNodes.Insert(i, hardwareNode);
         }
     }
 }

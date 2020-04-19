@@ -86,17 +86,17 @@ namespace LibreHardwareMonitor.UI
 
         protected override void NodeRemoved(Node node)
         {
-            node.IsVisibleChanged -= Node_IsVisibleChanged;
-            Node_IsVisibleChanged(null);
+            node.IsVisibleChanged -= ChildIsVisibleChanged;
+            ChildIsVisibleChanged(null);
         }
 
         protected override void NodeAdded(Node node)
         {
-            node.IsVisibleChanged += Node_IsVisibleChanged;
-            Node_IsVisibleChanged(null);
+            node.IsVisibleChanged += ChildIsVisibleChanged;
+            ChildIsVisibleChanged(null);
         }
 
-        private void Node_IsVisibleChanged(Node node)
+        private void ChildIsVisibleChanged(Node node)
         {
             foreach (Node n in Nodes)
             {
@@ -126,6 +126,20 @@ namespace LibreHardwareMonitor.UI
                     _settings.Remove(_expandedIdentifier);
                 }
             }
+        }
+
+        public override void AddChild(Node node)
+        {
+            if (node is SensorNode sensorNode)
+            {
+                int i = 0;
+                while (i < InternalNodes.Count && ((SensorNode)InternalNodes[i]).Sensor.Index < sensorNode.Sensor.Index)
+                    i++;
+
+                InternalNodes.Insert(i, sensorNode);
+            }
+            else
+                base.AddChild(node);
         }
     }
 }

@@ -14,6 +14,8 @@ namespace LibreHardwareMonitor
 {
     public static class Program
     {
+        internal static readonly string CurrentDirectory = Path.GetDirectoryName(Application.ExecutablePath);
+
         [STAThread]
         public static void Main()
         {
@@ -68,8 +70,7 @@ namespace LibreHardwareMonitor
 
         private static bool IsFileAvailable(string fileName)
         {
-            string path = Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar;
-            if (!File.Exists(path + fileName))
+            if (!File.Exists(Path.Combine(CurrentDirectory, fileName)))
             {
                 MessageBox.Show("The following file could not be found: " + fileName + "\nPlease extract all files from the archive.", "Error",
                    MessageBoxButtons.OK, MessageBoxIcon.Error);

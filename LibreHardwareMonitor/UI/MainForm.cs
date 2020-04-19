@@ -131,9 +131,9 @@ namespace LibreHardwareMonitor.UI
                 }
             };
 
-            TreeModel treeModel = new TreeModel();
-            treeModel.Nodes.Add(_root);
-            treeView.Model = treeModel;
+            TreeModel treeViewModel = new TreeModel(_root);
+
+            treeView.Model = treeViewModel;
 
             _computer = new Computer(_settings);
 
@@ -189,7 +189,7 @@ namespace LibreHardwareMonitor.UI
             UserOption showHiddenSensors = new UserOption("hiddenMenuItem", false, hiddenMenuItem, _settings);
             showHiddenSensors.Changed += delegate
             {
-                treeModel.ForceVisible = showHiddenSensors.Value;
+                treeViewModel.ForceVisible = showHiddenSensors.Value;
             };
 
             UserOption showValue = new UserOption("valueMenuItem", true, valueMenuItem, _settings);
@@ -526,20 +526,20 @@ namespace LibreHardwareMonitor.UI
             };
         }
 
-        private void InsertSorted(IList<Node> nodes, HardwareNode node)
-        {
-            int i = 0;
-            while (i < nodes.Count && nodes[i] is HardwareNode && ((HardwareNode)nodes[i]).Hardware.HardwareType <= node.Hardware.HardwareType)
-                i++;
+        //private void InsertSorted(IList<Node> nodes, HardwareNode node)
+        //{
+        //    int i = 0;
+        //    while (i < nodes.Count && nodes[i] is HardwareNode && ((HardwareNode)nodes[i]).Hardware.HardwareType <= node.Hardware.HardwareType)
+        //        i++;
 
-            nodes.Insert(i, node);
-        }
+        //    nodes.Insert(i, node);
+        //}
 
         private void SubHardwareAdded(IHardware hardware, Node node)
         {
             HardwareNode hardwareNode = new HardwareNode(hardware, _settings, _unitManager);
             hardwareNode.PlotSelectionChanged += PlotSelectionChanged;
-            InsertSorted(node.Nodes, hardwareNode);
+            node.AddChild(hardwareNode);
             foreach (IHardware subHardware in hardware.SubHardware)
                 SubHardwareAdded(subHardware, hardwareNode);
         }
@@ -568,7 +568,8 @@ namespace LibreHardwareMonitor.UI
 
             foreach (HardwareNode hardwareNode in nodesToRemove)
             {
-                _root.Nodes.Remove(hardwareNode);
+                _root.RemoveChild(hardwareNode);
+
                 hardwareNode.PlotSelectionChanged -= PlotSelectionChanged;
             }
 
@@ -660,7 +661,7 @@ namespace LibreHardwareMonitor.UI
 
         private void NodeCheckBox_IsVisibleValueNeeded(object sender, NodeControlValueEventArgs e)
         {
-            e.Value = (e.Node.Tag is SensorNode node) && plotMenuItem.Checked;
+            e.Value = (e.Node.Tag is SensorNode) && plotMenuItem.Checked;
         }
 
         private void ExitClick(object sender, EventArgs e)
@@ -783,7 +784,7 @@ namespace LibreHardwareMonitor.UI
 
         private void AboutMenuItem_Click(object sender, EventArgs e)
         {
-            _ = new AboutBox().ShowDialog();
+            new AboutBox().ShowDialog();
         }
 
         private void TreeView_Click(object sender, TreeNodeAdvMouseEventArgs e)
@@ -909,7 +910,7 @@ namespace LibreHardwareMonitor.UI
                             {
                                 MenuItem item = new MenuItem(i + " %") { RadioCheck = true };
                                 manualItem.MenuItems.Add(item);
-                                item.Checked = control.ControlMode == ControlMode.Software && Math.Round(control.SoftwareValue) == i;
+                                item.Checked = control.ControlMode == ControlMode.Software && (int)Math.Round(control.SoftwareValue) == i;
                                 int softwareValue = i;
                                 item.Click += delegate
                                 {
@@ -962,14 +963,14 @@ namespace LibreHardwareMonitor.UI
                         MenuItem itemUp = new MenuItem("Move up");
                         itemUp.Click += delegate
                         {
-                            _root.Move(hardwareNode, -1);
+                            _root.Move(hardwareNode, false);
                         };
                         treeContextMenu.MenuItems.Add(itemUp);
 
                         MenuItem itemDown = new MenuItem("Move down");
                         itemDown.Click += delegate
                         {
-                            _root.Move(hardwareNode, +1);
+                            _root.Move(hardwareNode, true);
                         };
                         treeContextMenu.MenuItems.Add(itemDown);
                     }

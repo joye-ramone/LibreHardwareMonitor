@@ -437,31 +437,31 @@ namespace LibreHardwareMonitor.Utilities
             response.Close();
         }
 
-        private JObject GenerateJsonForNode(Node n, ref int nodeIndex)
+        private JObject GenerateJsonForNode(Node node, ref int nodeIndex)
         {
             JObject jsonNode = new JObject
             {
                 ["id"] = nodeIndex++,
-                ["Text"] = n.Text,
+                ["Text"] = node.Text,
                 ["Min"] = string.Empty,
                 ["Value"] = string.Empty,
                 ["Max"] = string.Empty
             };
 
-            if (n is SensorNode)
+            if (node is SensorNode)
             {
-                jsonNode["SensorId"] = ((SensorNode)n).Sensor.Identifier.ToString();
-                jsonNode["Type"] = ((SensorNode)n).Sensor.SensorType.ToString();
-                jsonNode["Min"] = ((SensorNode)n).Min;
-                jsonNode["Value"] = ((SensorNode)n).Value;
-                jsonNode["Max"] = ((SensorNode)n).Max;
+                jsonNode["SensorId"] = ((SensorNode)node).Sensor.Identifier.ToString();
+                jsonNode["Type"] = ((SensorNode)node).Sensor.SensorType.ToString();
+                jsonNode["Min"] = ((SensorNode)node).Min;
+                jsonNode["Value"] = ((SensorNode)node).Value;
+                jsonNode["Max"] = ((SensorNode)node).Max;
                 jsonNode["ImageURL"] = "images/transparent.png";
             }
-            else if (n is HardwareNode hardwareNode)
+            else if (node is HardwareNode hardwareNode)
             {
                 jsonNode["ImageURL"] = "images_icon/" + GetHardwareImageFile(hardwareNode);
             }
-            else if (n is TypeNode typeNode)
+            else if (node is TypeNode typeNode)
             {
                 jsonNode["ImageURL"] = "images_icon/" + GetTypeImageFile(typeNode);
             }
@@ -471,7 +471,7 @@ namespace LibreHardwareMonitor.Utilities
             }
 
             JArray children = new JArray();
-            foreach (Node child in n.Nodes)
+            foreach (Node child in node.Nodes)
             {
                 children.Add(GenerateJsonForNode(child, ref nodeIndex));
             }
