@@ -336,7 +336,7 @@ namespace Aga.Controls.Tree
 			set { _isExpandingNow = value; }
 		}
 
-		private bool _autoExpandOnStructureChanged = true;
+		private bool _autoExpandOnStructureChanged = false;
 		public bool AutoExpandOnStructureChanged
 		{
 			get { return _autoExpandOnStructureChanged; }

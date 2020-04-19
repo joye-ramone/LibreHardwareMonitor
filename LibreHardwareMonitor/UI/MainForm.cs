@@ -112,9 +112,24 @@ namespace LibreHardwareMonitor.UI
             nodeTextBoxText.EditorShowing += NodeTextBoxText_EditorShowing;
 
             foreach (TreeColumn column in treeView.Columns)
-                column.Width = Math.Max(20, Math.Min(400, _settings.GetValue("treeView.Columns." + column.Header + ".Width", column.Width)));
+            {
+                column.Width = Math.Max(20,
+                    Math.Min(400, _settings.GetValue("treeView.Columns." + column.Header + ".Width", column.Width)));
+            }
 
             _root = new ComputerNode(_settings);
+
+            treeView.NodeAdded += (sender, e) =>
+            {
+                if (e.Node.Tag is IExpandPersistNode persistNode)
+                {
+                    e.Node.IsExpanded = persistNode.Expanded;
+                }
+                else
+                {
+                    e.Node.IsExpanded = true;
+                }
+            };
 
             TreeModel treeModel = new TreeModel();
             treeModel.Nodes.Add(_root);
@@ -656,8 +671,11 @@ namespace LibreHardwareMonitor.UI
         private void Timer_Tick(object sender, EventArgs e)
         {
             _computer.Accept(_updateVisitor);
+
             treeView.Invalidate();
+
             _plotPanel.InvalidatePlot();
+
             _systemTray.Redraw();
             _gadget?.Redraw();
             _wmiProvider?.Update();
@@ -667,13 +685,11 @@ namespace LibreHardwareMonitor.UI
 
             if (_delayCount < 4)
                 _delayCount++;
-
-            RestoreCollapsedNodeState(treeView);
         }
 
         private void SaveConfiguration()
         {
-            if (_plotPanel == null || _settings == null)
+            if (_settings == null)
                 return;
 
             _settings.SetValue("ShowHideHotKey", (int)_showHideHotKey);
@@ -728,22 +744,7 @@ namespace LibreHardwareMonitor.UI
             }
             Bounds = newBounds;
 
-            RestoreCollapsedNodeState(treeView);
-
             FormClosed += MainForm_FormClosed;
-        }
-
-        private void RestoreCollapsedNodeState(TreeViewAdv treeViewAdv)
-        {
-            var collapsedHwNodes = treeViewAdv.AllNodes
-                .Where(n => n.IsExpanded && n.Tag is IExpandPersistNode expandPersistNode && !expandPersistNode.Expanded)
-                .OrderByDescending(n => n.Level)
-                .ToList();
-
-            foreach (TreeNodeAdv node in collapsedHwNodes)
-            {
-                node.IsExpanded = false;
-            }
         }
 
         private void PersistCollapsedNodeState(TreeViewAdv treeViewAdv)
@@ -856,6 +857,11 @@ namespace LibreHardwareMonitor.UI
                     }
                     treeContextMenu.MenuItems.Add(new MenuItem("-"));
                     {
+                        MenuItem item = new MenuItem("Show in Plot") { Checked = node.Plot };
+                        item.Click += delegate { node.Plot = !item.Checked; };
+                        treeContextMenu.MenuItems.Add(item);
+                    }
+                    {
                         MenuItem item = new MenuItem("Show in Tray") { Checked = _systemTray.Contains(node.Sensor) };
                         item.Click += delegate
                         {
@@ -956,16 +962,14 @@ namespace LibreHardwareMonitor.UI
                         MenuItem itemUp = new MenuItem("Move up");
                         itemUp.Click += delegate
                         {
-                            if (_root.Move(hardwareNode, -1))
-                                RestoreCollapsedNodeState(treeView);
+                            _root.Move(hardwareNode, -1);
                         };
                         treeContextMenu.MenuItems.Add(itemUp);
 
                         MenuItem itemDown = new MenuItem("Move down");
                         itemDown.Click += delegate
                         {
-                            if (_root.Move(hardwareNode, +1))
-                                RestoreCollapsedNodeState(treeView);
+                            _root.Move(hardwareNode, +1);
                         };
                         treeContextMenu.MenuItems.Add(itemDown);
                     }

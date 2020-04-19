@@ -744,7 +744,7 @@ namespace LibreHardwareMonitor.UI
             this.treeView.Model = null;
             this.treeView.Name = "treeView";
             this.treeView.NodeControls.Add(this.nodeImage);
-            this.treeView.NodeControls.Add(this.nodeCheckBox);
+            //this.treeView.NodeControls.Add(this.nodeCheckBox);
             this.treeView.NodeControls.Add(this.nodeTextBoxText);
             this.treeView.NodeControls.Add(this.nodeTextBoxValue);
             this.treeView.NodeControls.Add(this.nodeTextBoxMin);

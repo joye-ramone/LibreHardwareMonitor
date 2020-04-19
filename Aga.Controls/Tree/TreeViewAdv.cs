@@ -143,7 +143,15 @@ namespace Aga.Controls.Tree
 				Expanded(this, new TreeViewAdvEventArgs(node));
 		}
 
-		[Category("Behavior")]
+	    [Category("Behavior")]
+	    public event EventHandler<TreeViewAdvEventArgs> NodeAdded;
+	    private void OnNodeAdded(TreeNodeAdv node)
+	    {
+	        if (NodeAdded != null)
+	            NodeAdded(this, new TreeViewAdvEventArgs(node));
+	    }
+
+        [Category("Behavior")]
 		public event EventHandler GridLineStyleChanged;
 		private void OnGridLineStyleChanged()
 		{
@@ -747,7 +755,7 @@ namespace Aga.Controls.Tree
 		{
 			TreeNodeAdv node = new TreeNodeAdv(this, tag);
 			AddNode(parent, index, node);
-		}
+        }
 
 		private void AddNode(TreeNodeAdv parent, int index, TreeNodeAdv node)
 		{
@@ -756,9 +764,13 @@ namespace Aga.Controls.Tree
 			else
 				parent.Nodes.Add(node);
 
-			node.IsLeaf = Model.IsLeaf(GetPath(node));
-			if (node.IsLeaf)
+            node.IsLeaf = Model.IsLeaf(GetPath(node));
+
+		    OnNodeAdded(node);
+
+            if (node.IsLeaf)
 				node.Nodes.Clear();
+
 			if (!LoadOnDemand || node.IsExpandedOnce)
 				ReadChilds(node);
 		}
