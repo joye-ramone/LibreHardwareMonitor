@@ -16,7 +16,10 @@ namespace LibreHardwareMonitor.UI
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
         private readonly List<TypeNode> _typeNodes = new List<TypeNode>();
+
         private readonly string _expandedIdentifier;
+        private readonly string _hiddenIdentifier;
+
         private bool _expanded;
 
         public event EventHandler PlotSelectionChanged;
@@ -25,11 +28,12 @@ namespace LibreHardwareMonitor.UI
         {
             _settings = settings;
             _unitManager = unitManager;
-            _expandedIdentifier = new Identifier(hardware.Identifier, "expanded").ToString();
             Hardware = hardware;
+
             Image = HardwareTypeImage.Instance.GetImage(hardware.HardwareType);
 
-            bool hidden = settings.GetValue(new Identifier(hardware.Identifier, "hidden").ToString(), false);
+            _hiddenIdentifier = new Identifier(hardware.Identifier, "hidden").ToString();
+            bool hidden = settings.GetValue(_hiddenIdentifier, false);
             base.IsVisible = !hidden;
 
             foreach (SensorType sensorType in Enum.GetValues(typeof(SensorType)))
@@ -41,9 +45,9 @@ namespace LibreHardwareMonitor.UI
             hardware.SensorAdded += SensorAdded;
             hardware.SensorRemoved += SensorRemoved;
 
+            _expandedIdentifier = new Identifier(hardware.Identifier, "expanded").ToString();
             _expanded = settings.GetValue(_expandedIdentifier, true);
         }
-
 
         public override string Text
         {
@@ -57,7 +61,7 @@ namespace LibreHardwareMonitor.UI
             set
             {
                 base.IsVisible = value;
-                _settings.SetValue(new Identifier(Hardware.Identifier, "hidden").ToString(), !value);
+                _settings.SetValue(_hiddenIdentifier, !value);
             }
         }
 
@@ -79,6 +83,8 @@ namespace LibreHardwareMonitor.UI
                 }
             }
         }
+
+        public int SortIndex { get; set; }
 
         private void UpdateNode(TypeNode node)
         {

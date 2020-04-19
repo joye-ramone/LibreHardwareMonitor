@@ -18,23 +18,26 @@ namespace LibreHardwareMonitor.UI
         private bool _visible;
 
         public delegate void NodeEventHandler(Node node);
-        public event NodeEventHandler IsVisibleChanged;
-        public event NodeEventHandler NodeAdded;
-        public event NodeEventHandler NodeRemoved;
 
-        private TreeModel RootTreeModel()
+        public event NodeEventHandler IsVisibleChanged;
+
+        protected virtual void NodeAdded(Node node) { }
+        protected virtual void NodeRemoved(Node node) { }
+
+        protected TreeModel RootTreeModel()
         {
             Node node = this;
             while (node != null)
             {
                 if (node.Model != null)
                     return node.Model;
+
                 node = node._parent;
             }
             return null;
         }
 
-        public Node() : this(string.Empty) { }
+        protected Node() : this(string.Empty) { }
 
         public Node(string text)
         {
@@ -137,9 +140,10 @@ namespace LibreHardwareMonitor.UI
                     item._parent = _owner;
                     base.InsertItem(index, item);
 
+                    _owner.NodeAdded(item);
+
                     TreeModel model = _owner.RootTreeModel();
                     model?.OnStructureChanged(_owner);
-                    _owner.NodeAdded?.Invoke(item);
                 }
             }
 
@@ -149,9 +153,10 @@ namespace LibreHardwareMonitor.UI
                 item._parent = null;
                 base.RemoveItem(index);
 
+                _owner.NodeRemoved(item);
+
                 TreeModel model = _owner.RootTreeModel();
                 model?.OnStructureChanged(_owner);
-                _owner.NodeRemoved?.Invoke(item);
             }
 
             protected override void SetItem(int index, Node item)

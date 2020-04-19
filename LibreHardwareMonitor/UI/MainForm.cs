@@ -29,7 +29,7 @@ namespace LibreHardwareMonitor.UI
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
         private readonly Computer _computer;
-        private readonly Node _root;
+        private readonly ComputerNode _root;
         private IDictionary<ISensor, Color> _sensorPlotColors = new Dictionary<ISensor, Color>();
         private readonly Color[] _plotColorPalette;
         private readonly SystemTray _systemTray;
@@ -114,9 +114,9 @@ namespace LibreHardwareMonitor.UI
             foreach (TreeColumn column in treeView.Columns)
                 column.Width = Math.Max(20, Math.Min(400, _settings.GetValue("treeView.Columns." + column.Header + ".Width", column.Width)));
 
-            TreeModel treeModel = new TreeModel();
-            _root = new Node(Environment.MachineName) { Image = EmbeddedResources.GetImage("computer.png") };
+            _root = new ComputerNode(_settings);
 
+            TreeModel treeModel = new TreeModel();
             treeModel.Nodes.Add(_root);
             treeView.Model = treeModel;
 
@@ -366,14 +366,7 @@ namespace LibreHardwareMonitor.UI
             // Create a handle, otherwise calling Close() does not fire FormClosed
 
             // Make sure the settings are saved when the user logs off
-            Microsoft.Win32.SystemEvents.SessionEnded += delegate
-            {
-                PersistCollapsedNodeState(treeView);
-                _computer.Close();
-                SaveConfiguration();
-                if (_runWebServer.Value)
-                    Server.Quit();
-            };
+            Microsoft.Win32.SystemEvents.SessionEnded += delegate { SessionEnd(); };
 
             KeyPreview = true;
             KeyDown += (sender, e) =>
@@ -383,6 +376,16 @@ namespace LibreHardwareMonitor.UI
                     SysTrayHideShow();
                 }
             };
+        }
+
+        private void SessionEnd()
+        {
+            PersistCollapsedNodeState(treeView);
+            _root.SaveSortOrder();
+            _computer.Close();
+            SaveConfiguration();
+            if (_runWebServer.Value)
+                Server.Quit();
         }
 
         private void OnHotKey(object sender, HotkeyEventArgs e)
@@ -529,22 +532,31 @@ namespace LibreHardwareMonitor.UI
         private void HardwareAdded(IHardware hardware)
         {
             SubHardwareAdded(hardware, _root);
+
             PlotSelectionChanged(this, null);
         }
 
         private void HardwareRemoved(IHardware hardware)
         {
             List<HardwareNode> nodesToRemove = new List<HardwareNode>();
+
             foreach (Node node in _root.Nodes)
             {
-                if (node is HardwareNode hardwareNode && hardwareNode.Hardware == hardware)
-                    nodesToRemove.Add(hardwareNode);
+                if (node is HardwareNode hardwareNode)
+                {
+                    if (hardwareNode.Hardware == hardware)
+                    {
+                        nodesToRemove.Add(hardwareNode);
+                    }
+                }
             }
+
             foreach (HardwareNode hardwareNode in nodesToRemove)
             {
                 _root.Nodes.Remove(hardwareNode);
                 hardwareNode.PlotSelectionChanged -= PlotSelectionChanged;
             }
+
             PlotSelectionChanged(this, null);
         }
 
@@ -756,12 +768,8 @@ namespace LibreHardwareMonitor.UI
             _systemTray.IsMainIconEnabled = false;
             timer.Enabled = false;
 
-            PersistCollapsedNodeState(treeView);
+            SessionEnd();
 
-            _computer.Close();
-            SaveConfiguration();
-            if (_runWebServer.Value)
-                Server.Quit();
             _systemTray.Dispose();
 
             Application.Exit();
@@ -785,6 +793,7 @@ namespace LibreHardwareMonitor.UI
             TreeNodeAdv treeViewSelectedNode = e.Node;
 
             treeView.SelectedNode = treeViewSelectedNode;
+
             if (treeViewSelectedNode != null)
             {
                 if (treeViewSelectedNode.Tag is SensorNode node && node.Sensor != null)
@@ -938,6 +947,27 @@ namespace LibreHardwareMonitor.UI
                             hardwareNode.IsVisible = true;
                         };
                         treeContextMenu.MenuItems.Add(item);
+                    }
+
+                    if (hardwareNode.Parent == _root)
+                    {
+                        treeContextMenu.MenuItems.Add(new MenuItem("-"));
+
+                        MenuItem itemUp = new MenuItem("Move up");
+                        itemUp.Click += delegate
+                        {
+                            if (_root.Move(hardwareNode, -1))
+                                RestoreCollapsedNodeState(treeView);
+                        };
+                        treeContextMenu.MenuItems.Add(itemUp);
+
+                        MenuItem itemDown = new MenuItem("Move down");
+                        itemDown.Click += delegate
+                        {
+                            if (_root.Move(hardwareNode, +1))
+                                RestoreCollapsedNodeState(treeView);
+                        };
+                        treeContextMenu.MenuItems.Add(itemDown);
                     }
 
                     treeContextMenu.Show(treeView, new Point(m.X, m.Y));

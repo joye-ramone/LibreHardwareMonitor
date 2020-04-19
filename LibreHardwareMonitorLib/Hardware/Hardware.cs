@@ -15,6 +15,7 @@ namespace LibreHardwareMonitor.Hardware
         protected readonly HashSet<ISensor> _active = new HashSet<ISensor>();
         protected readonly string _name;
         protected readonly ISettings _settings;
+
         private string _customName;
 
         protected Hardware(string name, Identifier identifier, ISettings settings)

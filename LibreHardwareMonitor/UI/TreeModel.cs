@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Aga.Controls.Tree;
 
 namespace LibreHardwareMonitor.UI
@@ -19,7 +20,7 @@ namespace LibreHardwareMonitor.UI
 
         public TreeModel()
         {
-            _root = new Node { Model = this };
+            _root = new Node("ModelRoot") { Model = this };
         }
 
         public TreePath GetPath(Node node)
@@ -49,6 +50,7 @@ namespace LibreHardwareMonitor.UI
             {
                 if (!(obj is Node node) || node.Parent != parent)
                     return null;
+
                 parent = node;
             }
             return parent;
@@ -59,12 +61,20 @@ namespace LibreHardwareMonitor.UI
             Node node = GetNode(treePath);
             if (node != null)
             {
-                foreach (Node n in node.Nodes)
-                    if (_forceVisible || n.IsVisible)
-                        yield return n;
+                var nodesToReturn = node
+                    .Nodes
+                    .Where(n => _forceVisible || n.IsVisible);
+
+                if (node is ComputerNode) // || node is HardwareNode custom sorting supported only on root level for now
+                {
+                    nodesToReturn = nodesToReturn.OrderBy(i => ((HardwareNode)i).SortIndex);
+                }
+
+                foreach (Node n in nodesToReturn)
+                {
+                    yield return n;
+                }
             }
-            else
-            { }
         }
 
         public bool IsLeaf(TreePath treePath)
@@ -89,11 +99,17 @@ namespace LibreHardwareMonitor.UI
         }
 
 #pragma warning disable 67
-        public event EventHandler<TreeModelEventArgs> NodesChanged;
         public event EventHandler<TreePathEventArgs> StructureChanged;
+
+        public event EventHandler<TreeModelEventArgs> NodesChanged;
         public event EventHandler<TreeModelEventArgs> NodesInserted;
         public event EventHandler<TreeModelEventArgs> NodesRemoved;
 #pragma warning restore 67
+
+        public void OnStructureChanged(Node node)
+        {
+            StructureChanged?.Invoke(this, new TreeModelEventArgs(GetPath(node), new object[0]));
+        }
 
         public void OnNodeChanged(Node parent, int index, Node node)
         {
@@ -103,11 +119,6 @@ namespace LibreHardwareMonitor.UI
                 if (path != null)
                     NodesChanged?.Invoke(this, new TreeModelEventArgs(path, new[] { index }, new object[] { node }));
             }
-        }
-
-        public void OnStructureChanged(Node node)
-        {
-            StructureChanged?.Invoke(this, new TreeModelEventArgs(GetPath(node), new object[0]));
         }
 
         public void OnNodeInserted(Node parent, int index, Node node)

@@ -305,7 +305,6 @@ namespace LibreHardwareMonitor.Hardware
             if (_groups.Contains(group))
                 return;
 
-
             _groups.Add(group);
 
             if (HardwareAdded != null)
@@ -320,8 +319,8 @@ namespace LibreHardwareMonitor.Hardware
             if (!_groups.Contains(group))
                 return;
 
-
             _groups.Remove(group);
+
             if (HardwareRemoved != null)
             {
                 foreach (IHardware hardware in group.Hardware)

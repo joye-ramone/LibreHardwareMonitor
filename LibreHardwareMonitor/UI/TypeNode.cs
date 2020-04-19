@@ -81,18 +81,16 @@ namespace LibreHardwareMonitor.UI
                     break;
             }
 
-            NodeAdded += TypeNode_NodeAdded;
-            NodeRemoved += TypeNode_NodeRemoved;
             _expanded = settings.GetValue(_expandedIdentifier, true);
         }
 
-        private void TypeNode_NodeRemoved(Node node)
+        protected override void NodeRemoved(Node node)
         {
             node.IsVisibleChanged -= Node_IsVisibleChanged;
             Node_IsVisibleChanged(null);
         }
 
-        private void TypeNode_NodeAdded(Node node)
+        protected override void NodeAdded(Node node)
         {
             node.IsVisibleChanged += Node_IsVisibleChanged;
             Node_IsVisibleChanged(null);
