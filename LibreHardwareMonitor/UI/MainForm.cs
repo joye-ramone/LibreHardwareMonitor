@@ -108,7 +108,10 @@ namespace LibreHardwareMonitor.UI
                 Height = _settings.GetValue("mainForm.Height", 640)
             };
 
-            _plotPanel = new PlotPanel(_settings, _unitManager) { Font = SystemFonts.MessageBoxFont, Dock = DockStyle.Fill };
+            _plotPanel = new PlotPanel(_settings, _unitManager)
+            {
+                Font = SystemFonts.MessageBoxFont, Dock = DockStyle.Fill
+            };
             _plotForm = new Form { FormBorderStyle = FormBorderStyle.SizableToolWindow, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual };
 
             AddOwnedForm(_plotForm);
@@ -391,7 +394,12 @@ namespace LibreHardwareMonitor.UI
 
             _showHideHotKey = (Keys)_settings.GetValue("ShowHideHotKey", (int)_showHideHotKey);
 
-            HotkeyManager.Current.AddOrReplace("OnHotKey", _showHideHotKey, OnHotKey);
+            try
+            {
+                HotkeyManager.Current.AddOrReplace("OnHotKey", _showHideHotKey, OnHotKey);
+            }
+            catch (HotkeyAlreadyRegisteredException e)
+            { }
 
             // Create a handle, otherwise calling Close() does not fire FormClosed
 
@@ -410,7 +418,7 @@ namespace LibreHardwareMonitor.UI
 
         private void SessionEnd()
         {
-            PersistCollapsedNodeState(treeView);
+            SaveCollapsedNodeState(treeView);
             _root.SaveSortOrder();
             _computer.Close();
             SaveConfiguration();
@@ -676,14 +684,18 @@ namespace LibreHardwareMonitor.UI
         {
             _computer.Accept(_updateVisitor);
 
-            treeView.Invalidate();
-
-            _plotPanel.InvalidatePlot();
+            if (Visible)
+            {
+                treeView.Invalidate();
+                _plotPanel.InvalidatePlot();
+            }
 
             _systemTray.Redraw();
-            _gadget?.Redraw();
 
-            _wmiProvider?.Update();
+            if (_gadget != null && _gadget.SensorsCount > 0)
+                _gadget?.Redraw();
+
+            //_wmiProvider?.Update();
 
             if (_logSensors != null && _logSensors.Value && _delayCount >= 4)
                 _logger.Log();
@@ -752,17 +764,17 @@ namespace LibreHardwareMonitor.UI
             FormClosed += MainForm_FormClosed;
         }
 
-        private void PersistCollapsedNodeState(TreeViewAdv treeViewAdv)
+        private void SaveCollapsedNodeState(TreeViewAdv treeViewAdv)
         {
             var collapsedHwNodes = treeViewAdv.AllNodes
-                .Where(n => !n.IsExpanded && n.Tag is IExpandPersistNode expandPersistNode && expandPersistNode.Expanded)
+                .Where(n => n.Tag is IExpandPersistNode expandPersistNode && expandPersistNode.Expanded != n.IsExpanded)
                 .OrderByDescending(n => n.Level)
                 .ToList();
 
             foreach (TreeNodeAdv node in collapsedHwNodes)
             {
                 var expandPersistNode = (IExpandPersistNode)node.Tag;
-                expandPersistNode.Expanded = false;
+                expandPersistNode.Expanded = node.IsExpanded;
             }
         }
 
@@ -967,6 +979,7 @@ namespace LibreHardwareMonitor.UI
                         MenuItem itemUp = new MenuItem("Move up");
                         itemUp.Click += delegate
                         {
+                            SaveCollapsedNodeState(treeView);
                             _root.Move(hardwareNode, false);
                         };
                         treeContextMenu.MenuItems.Add(itemUp);
@@ -974,6 +987,7 @@ namespace LibreHardwareMonitor.UI
                         MenuItem itemDown = new MenuItem("Move down");
                         itemDown.Click += delegate
                         {
+                            SaveCollapsedNodeState(treeView);
                             _root.Move(hardwareNode, true);
                         };
                         treeContextMenu.MenuItems.Add(itemDown);

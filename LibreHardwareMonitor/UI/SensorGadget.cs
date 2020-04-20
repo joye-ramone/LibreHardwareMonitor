@@ -534,7 +534,7 @@ namespace LibreHardwareMonitor.UI
             int x;
             int y = _topMargin;
 
-            if (_sensors.Count == 0)
+            if (SensorsCount == 0)
             {
                 x = LeftBorder + 1;
                 g.DrawString("Right-click on a sensor in the main window and select " +
@@ -591,6 +591,8 @@ namespace LibreHardwareMonitor.UI
                 }
             }
         }
+
+        public int SensorsCount => _sensors.Count;
 
         private string GetFormattedValue(ISensor sensor)
         {

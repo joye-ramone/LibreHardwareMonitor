@@ -28,6 +28,7 @@ namespace LibreHardwareMonitor.UI
         private readonly TimeSpanAxis _timeAxis = new TimeSpanAxis();
         private readonly SortedDictionary<SensorType, LinearAxis> _axes = new SortedDictionary<SensorType, LinearAxis>();
         private readonly Dictionary<SensorType, LineAnnotation> _annotations = new Dictionary<SensorType, LineAnnotation>();
+
         private UserOption _stackedAxes;
         private UserOption _showAxesLabels;
         private UserOption _timeAxisEnableZoom;
@@ -38,16 +39,53 @@ namespace LibreHardwareMonitor.UI
         private double _dpiXScale = 1;
         private double _dpiYScale = 1;
 
+        private Point _mouseDownLocation;
+
+        protected internal static readonly Dictionary<SensorType, string> Units = new Dictionary<SensorType, string>
+        {
+            { SensorType.Voltage, "V" },
+            { SensorType.Clock, "MHz" },
+            { SensorType.Temperature, "°C" },
+            { SensorType.Load, "%" },
+            { SensorType.Fan, "RPM" },
+            { SensorType.Flow, "L/h" },
+            { SensorType.Control, "%" },
+            { SensorType.Level, "%" },
+            { SensorType.Factor, "1" },
+            { SensorType.Power, "W" },
+            { SensorType.Data, "GB" },
+            { SensorType.Frequency, "Hz" }
+        };
+
         public PlotPanel(PersistentSettings settings, UnitManager unitManager)
         {
             _settings = settings;
             _unitManager = unitManager;
 
             SetDpi();
+
             _model = CreatePlotModel();
 
-            _plot = new PlotView { Dock = DockStyle.Fill, Model = _model, BackColor = Color.White, ContextMenu = CreateMenu() };
-            
+            var menu = CreateMenu();
+
+            _plot = new PlotView
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White,
+
+                Model = _model,
+                Controller =  new SensorPlotController()
+            };
+
+            _plot.MouseDown += (sender, e) => { _mouseDownLocation = e.Location; };
+            _plot.MouseUp += (sender, e) =>
+            {
+                if (e.Button == MouseButtons.Right && _mouseDownLocation == e.Location)
+                {
+                    menu.Show(_plot, _mouseDownLocation);
+                }
+            };
+
             UpdateAxesPosition();
 
             SuspendLayout();
@@ -59,6 +97,7 @@ namespace LibreHardwareMonitor.UI
         {
             _settings.SetValue("plotPanel.MinTimeSpan", (float)_timeAxis.ActualMinimum);
             _settings.SetValue("plotPanel.MaxTimeSpan", (float)_timeAxis.ActualMaximum);
+
             foreach (LinearAxis axis in _axes.Values)
             {
                 _settings.SetValue("plotPanel.Min" + axis.Key, (float)axis.ActualMinimum);
@@ -72,6 +111,10 @@ namespace LibreHardwareMonitor.UI
 
             MenuItem stackedAxesMenuItem = new MenuItem("Stacked Axes");
             _stackedAxes = new UserOption("stackedAxes", true, stackedAxesMenuItem, _settings);
+
+            MenuItem showAxesLabelsMenuItem = new MenuItem("Show Axes Labels");
+            _showAxesLabels = new UserOption("showAxesLabels", true, showAxesLabelsMenuItem, _settings);
+
             _stackedAxes.Changed += (sender, e) =>
             {
                 UpdateAxesPosition();
@@ -79,20 +122,31 @@ namespace LibreHardwareMonitor.UI
             };
             menu.MenuItems.Add(stackedAxesMenuItem);
 
-            MenuItem showAxesLabelsMenuItem = new MenuItem("Show Axes Labels");
-            _showAxesLabels = new UserOption("showAxesLabels", true, showAxesLabelsMenuItem, _settings);
             _showAxesLabels.Changed += (sender, e) =>
             {
-                if (_showAxesLabels.Value)
-                    _model.PlotMargins = new OxyThickness(double.NaN);
-                else
-                    _model.PlotMargins = new OxyThickness(0);
+                foreach (var a in _axes)
+                {
+                    if (_showAxesLabels.Value)
+                    {
+                        a.Value.Title = a.Key.ToString();
+
+                        if (Units.ContainsKey(a.Key))
+                            a.Value.Unit = Units[a.Key];
+                    }
+                    else
+                    {
+                        a.Value.Title = null;
+                        a.Value.Unit = null;
+                    }
+                }
             };
             menu.MenuItems.Add(showAxesLabelsMenuItem);
 
             MenuItem timeAxisMenuItem = new MenuItem("Time Axis");
+
             MenuItem[] timeAxisMenuItems =
-                { new MenuItem("Enable Zoom"),
+            {
+                new MenuItem("Enable Zoom"),
                 new MenuItem("Auto", (s, e) => { TimeAxisZoom(0, double.NaN); }),
                 new MenuItem("5 min", (s, e) => { TimeAxisZoom(0, 5 * 60); }),
                 new MenuItem("10 min", (s, e) => { TimeAxisZoom(0, 10 * 60); }),
@@ -105,10 +159,12 @@ namespace LibreHardwareMonitor.UI
                 new MenuItem("3 h", (s, e) => { TimeAxisZoom(0, 3 * 60 * 60); }),
                 new MenuItem("6 h", (s, e) => { TimeAxisZoom(0, 6 * 60 * 60); }),
                 new MenuItem("12 h", (s, e) => { TimeAxisZoom(0, 12 * 60 * 60); }),
-                new MenuItem("24 h", (s, e) => { TimeAxisZoom(0, 24 * 60 * 60); }) };
+                new MenuItem("24 h", (s, e) => { TimeAxisZoom(0, 24 * 60 * 60); })
+            };
 
             foreach (MenuItem mi in timeAxisMenuItems)
                 timeAxisMenuItem.MenuItems.Add(mi);
+
             menu.MenuItems.Add(timeAxisMenuItem);
 
             _timeAxisEnableZoom = new UserOption("timeAxisEnableZoom", true, timeAxisMenuItems[0], _settings);
@@ -119,11 +175,14 @@ namespace LibreHardwareMonitor.UI
 
             MenuItem yAxesMenuItem = new MenuItem("Value Axes");
             MenuItem[] yAxesMenuItems =
-                { new MenuItem("Enable Zoom"),
-                new MenuItem("Autoscale All", (s, e) => { AutoscaleAllYAxes(); }) };
+            {
+                new MenuItem("Enable Zoom"),
+                new MenuItem("Autoscale All", (s, e) => { AutoScaleAllYAxes(); })
+            };
 
             foreach (MenuItem mi in yAxesMenuItems)
                 yAxesMenuItem.MenuItems.Add(mi);
+
             menu.MenuItems.Add(yAxesMenuItem);
 
             _yAxesEnableZoom = new UserOption("yAxesEnableZoom", true, yAxesMenuItems[0], _settings);
@@ -155,27 +214,13 @@ namespace LibreHardwareMonitor.UI
             _timeAxis.Zoom(
               _settings.GetValue("plotPanel.MinTimeSpan", 0.0f),
               _settings.GetValue("plotPanel.MaxTimeSpan", 10.0f * 60));
-            _timeAxis.StringFormat = "h:mm";
 
-            var units = new Dictionary<SensorType, string>
-            {
-                { SensorType.Voltage, "V" },
-                { SensorType.Clock, "MHz" },
-                { SensorType.Temperature, "°C" },
-                { SensorType.Load, "%" },
-                { SensorType.Fan, "RPM" },
-                { SensorType.Flow, "L/h" },
-                { SensorType.Control, "%" },
-                { SensorType.Level, "%" },
-                { SensorType.Factor, "1" },
-                { SensorType.Power, "W" },
-                { SensorType.Data, "GB" },
-                { SensorType.Frequency, "Hz" }
-            };
+            _timeAxis.StringFormat = "h:mm";
 
             foreach (SensorType type in Enum.GetValues(typeof(SensorType)))
             {
                 string typeName = type.ToString();
+
                 var axis = new LinearAxis
                 {
                     Position = AxisPosition.Left,
@@ -195,10 +240,10 @@ namespace LibreHardwareMonitor.UI
                     Type = LineAnnotationType.Horizontal,
                     ClipByXAxis = false,
                     ClipByYAxis = false,
-                    LineStyle = LineStyle.Solid,
+                    LineStyle = LineStyle.LongDash,
                     Color = OxyColors.Black,
                     YAxisKey = typeName,
-                    StrokeThickness = 2,
+                    StrokeThickness = 1,
                 };
 
                 axis.AxisChanged += (sender, args) => annotation.Y = axis.ActualMinimum;
@@ -206,8 +251,8 @@ namespace LibreHardwareMonitor.UI
 
                 axis.Zoom(_settings.GetValue("plotPanel.Min" + axis.Key, float.NaN), _settings.GetValue("plotPanel.Max" + axis.Key, float.NaN));
 
-                if (units.ContainsKey(type))
-                    axis.Unit = units[type];
+                if (Units.ContainsKey(type))
+                    axis.Unit = Units[type];
 
                 _axes.Add(type, axis);
                 _annotations.Add(type, annotation);
@@ -215,8 +260,10 @@ namespace LibreHardwareMonitor.UI
 
             var model = new ScaledPlotModel(_dpiXScale, _dpiYScale);
             model.Axes.Add(_timeAxis);
+
             foreach (LinearAxis axis in _axes.Values)
                 model.Axes.Add(axis);
+
             model.IsLegendVisible = false;
 
             return model;
@@ -247,8 +294,8 @@ namespace LibreHardwareMonitor.UI
         public void SetSensors(List<ISensor> sensors, IDictionary<ISensor, Color> colors)
         {
             _model.Series.Clear();
-            var types = new HashSet<SensorType>();
 
+            var types = new HashSet<SensorType>();
 
             DataPoint CreateDataPoint(SensorType type, SensorValue value)
             {
@@ -256,7 +303,7 @@ namespace LibreHardwareMonitor.UI
 
                 if (type == SensorType.Temperature && _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
                 {
-                    displayedValue = UnitManager.CelsiusToFahrenheit(value.Value).Value;
+                    displayedValue = UnitManager.CelsiusToFahrenheit(value.Value);
                 }
                 else
                 {
@@ -265,7 +312,6 @@ namespace LibreHardwareMonitor.UI
 
                 return new DataPoint((_now - value.Time).TotalSeconds, displayedValue);
             }
-
 
             foreach (ISensor sensor in sensors)
             {
@@ -277,6 +323,13 @@ namespace LibreHardwareMonitor.UI
                     YAxisKey = _axes[sensor.SensorType].Key,
                     Title = sensor.Hardware.Name + " " + sensor.Name
                 };
+
+                string typeName = sensor.SensorType.ToString();
+
+                series.TrackerFormatString = "{0}\nTime: {2:hh\\:mm\\:ss\\.fff}\n" + typeName + ": {4:.##}";
+
+                if (Units.ContainsKey(sensor.SensorType))
+                    series.TrackerFormatString += " " + Units[sensor.SensorType];
 
                 _model.Series.Add(series);
 
@@ -300,6 +353,7 @@ namespace LibreHardwareMonitor.UI
             {
                 int count = _axes.Values.Count(axis => axis.IsAxisVisible);
                 double start = 0.0;
+
                 foreach (KeyValuePair<SensorType, LinearAxis> pair in _axes.Reverse())
                 {
                     LinearAxis axis = pair.Value;
@@ -310,8 +364,10 @@ namespace LibreHardwareMonitor.UI
                     axis.PositionTier = 0;
                     axis.MajorGridlineStyle = LineStyle.Solid;
                     axis.MinorGridlineStyle = LineStyle.Solid;
+
                     LineAnnotation annotation = _annotations[pair.Key];
                     annotation.Y = axis.ActualMinimum;
+
                     if (!_model.Annotations.Contains(annotation)) 
                         _model.Annotations.Add(annotation);
                 }
@@ -337,9 +393,12 @@ namespace LibreHardwareMonitor.UI
                         axis.EndPosition = 0;
                         axis.PositionTier = 0;
                     }
+
                     axis.MajorGridlineStyle = LineStyle.None;
                     axis.MinorGridlineStyle = LineStyle.None;
+
                     LineAnnotation annotation = _annotations[pair.Key];
+
                     if (_model.Annotations.Contains(annotation)) 
                         _model.Annotations.Remove(_annotations[pair.Key]);
                 }
@@ -356,7 +415,8 @@ namespace LibreHardwareMonitor.UI
                 {
                     LinearAxis axis = pair.Value;
                     SensorType type = pair.Key;
-                    if (type == SensorType.Temperature)
+
+                    if (_showAxesLabels.Value && type == SensorType.Temperature)
                         axis.Unit = _unitManager.TemperatureUnit == TemperatureUnit.Celsius ? "°C" : "°F";
                     
                     if (!_stackedAxes.Value) 
@@ -372,18 +432,28 @@ namespace LibreHardwareMonitor.UI
 
         public void TimeAxisZoom(double min, double max)
         {
-            bool timeAxisIsZoomEnabled = _timeAxis.IsZoomEnabled;
+            bool axisIsZoomEnabled = _timeAxis.IsZoomEnabled;
 
             _timeAxis.IsZoomEnabled = true;
             _timeAxis.Zoom(min, max);
+
             InvalidatePlot();
-            _timeAxis.IsZoomEnabled = timeAxisIsZoomEnabled;
+
+            _timeAxis.IsZoomEnabled = axisIsZoomEnabled;
         }
 
-        public void AutoscaleAllYAxes()
+        public void AutoScaleAllYAxes()
         {
+            bool axisIsZoomEnabled = _yAxesEnableZoom.Value;
+
             foreach (LinearAxis axis in _axes.Values)
+            {
+                axis.IsZoomEnabled = true;
                 axis.Zoom(double.NaN, double.NaN);
+                axis.IsZoomEnabled = axisIsZoomEnabled;
+            }
+
+            InvalidatePlot();
         }
     }
 }

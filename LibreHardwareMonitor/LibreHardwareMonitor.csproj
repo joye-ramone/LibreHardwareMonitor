@@ -118,6 +118,7 @@
     </Compile>
     <Compile Include="UI\SensorGadget.cs" />
     <Compile Include="UI\SensorNotifyIcon.cs" />
+    <Compile Include="UI\SensorPlotController.cs" />
     <Compile Include="UI\SensorTypeImage.cs" />
     <Compile Include="UI\ShowDesktop.cs" />
     <Compile Include="UI\SplitContainerAdv.cs">

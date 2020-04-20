@@ -17,7 +17,6 @@ namespace LibreHardwareMonitor.UI
 
     public class UnitManager
     {
-
         private readonly PersistentSettings _settings;
         private TemperatureUnit _temperatureUnit;
 
@@ -38,6 +37,11 @@ namespace LibreHardwareMonitor.UI
         }
 
         public static float? CelsiusToFahrenheit(float? valueInCelsius)
+        {
+            return valueInCelsius * 1.8f + 32;
+        }
+
+        public static float CelsiusToFahrenheit(float valueInCelsius)
         {
             return valueInCelsius * 1.8f + 32;
         }
