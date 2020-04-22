@@ -214,9 +214,9 @@ namespace LibreHardwareMonitor.UI
         {
             float displayedValue;
 
-            if (type == SensorType.Temperature && _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
+            if (type == SensorType.Temperature)
             {
-                displayedValue = UnitManager.CelsiusToFahrenheit(value.Value);
+                displayedValue = _unitManager.LocalizeTemperature(value.Value);
             }
             else
             {

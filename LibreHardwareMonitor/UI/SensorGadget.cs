@@ -596,106 +596,25 @@ namespace LibreHardwareMonitor.UI
 
         private string GetFormattedValue(ISensor sensor)
         {
-            string formatted;
+            float? value = sensor.Value;
 
-            if (sensor.Value.HasValue)
+            if (!value.HasValue)
             {
-                string format = "";
-
-                switch (sensor.SensorType)
-                {
-                    case SensorType.Voltage:
-                        format = "{0:F3} V";
-                        break;
-                    case SensorType.Clock:
-                        format = "{0:F0} MHz";
-                        break;
-                    case SensorType.Frequency:
-                        format = "{0:F0} Hz";
-                        break;
-                    case SensorType.Fan:
-                        format = "{0:F0} RPM";
-                        break;
-                    case SensorType.Flow:
-                        format = "{0:F0} L/h";
-                        break;
-                    case SensorType.Power:
-                        format = "{0:F1} W";
-                        break;
-                    case SensorType.Data:
-                        format = "{0:F1} GB";
-                        break;
-                    case SensorType.SmallData:
-                        format = "{0:F0} MB";
-                        break;
-                    case SensorType.Factor:
-                        format = "{0:F3}";
-                        break;
-                }
-
-                if (sensor.SensorType == SensorType.Temperature)
-                {
-                    if (_unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
-                    {
-                        formatted = $"{UnitManager.CelsiusToFahrenheit(sensor.Value):F1} °F";
-                    }
-                    else
-                    {
-                        formatted = $"{sensor.Value:F1} °C";
-                    }
-                }
-                else if (sensor.SensorType == SensorType.Throughput)
-                {
-                    string result;
-                    switch (sensor.Name)
-                    {
-                        case "Connection Speed":
-                        {
-                            switch (sensor.Value)
-                            {
-                                case 100 * 1000 * 1000:
-                                    result = "100Mbps";
-                                    break;
-                                case 1000 * 1000 * 1000:
-                                    result = "1Gbps";
-                                    break;
-                                default:
-                                    {
-                                        if (sensor.Value < 1024)
-                                            result = $"{sensor.Value:F0} bps";
-                                        else if (sensor.Value < 1024 * 1024)
-                                            result = $"{sensor.Value / 1024:F1} Kbps";
-                                        else if (sensor.Value < 1024 * 1024 * 1024)
-                                            result = $"{sensor.Value / 1024 * 1024:F1} Mbps";
-                                        else
-                                            result = $"{sensor.Value / 1024 * 1024 * 1024:F1} Gbps";
-                                    }
-                                    break;
-                            }
-                        }
-                            break;
-                        default:
-                            {
-                                if (sensor.Value < 1024 * 1024)
-                                    result = $"{sensor.Value / 1024:F1} KB/s";
-                                else
-                                    result = $"{sensor.Value / 1024 * 1024:F1} MB/s";
-                            }
-                            break;
-                    }
-
-                    formatted = result;
-                }
-                else
-                {
-                    formatted = string.Format(format, sensor.Value);
-                }
-            }
-            else
-            {
-                formatted = "-";
+                return "-";
             }
 
+            string format = _unitManager.GetFormatWithUnit(sensor.SensorType, value);
+
+            if (sensor.SensorType == SensorType.Temperature)
+            {
+                value = _unitManager.LocalizeTemperature(value);
+            }
+            else if (sensor.SensorType == SensorType.Throughput)
+            {
+                value = _unitManager.ScaleThroughput(value);
+            }
+
+            string formatted = string.Format(format, value);
             return formatted;
         }
 

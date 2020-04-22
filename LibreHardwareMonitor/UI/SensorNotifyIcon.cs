@@ -18,6 +18,8 @@ namespace LibreHardwareMonitor.UI
 {
     public class SensorNotifyIcon : IDisposable
     {
+        private const int MaxToolTipLength = 63;
+
         private readonly UnitManager _unitManager;
         private readonly NotifyIconAdv _notifyIcon;
         private readonly Bitmap _bitmap;
@@ -161,33 +163,55 @@ namespace LibreHardwareMonitor.UI
 
         private string GetString()
         {
-            if (!Sensor.Value.HasValue)
-                return "-";
+            float? sensorValue = Sensor.Value;
 
+            if (!sensorValue.HasValue)
+                return "-";
+            
+            switch (Sensor.SensorType)
+            {
+                case SensorType.Clock:
+                case SensorType.Fan:
+                case SensorType.Flow:
+                    sensorValue *= 0.001f;
+                    break;
+                case SensorType.Temperature:
+                    sensorValue = _unitManager.LocalizeTemperature(sensorValue);
+                    break;
+                case SensorType.Throughput:
+                    sensorValue = _unitManager.ScaleThroughput(sensorValue);
+                    break;
+            }
+
+            // Frequency
+            // SmallData
+            // Throughput
+
+            // specific case - use very short formatting for tray icon
             switch (Sensor.SensorType)
             {
                 case SensorType.Voltage:
-                    return $"{Sensor.Value:F1}";
+                    return $"{sensorValue:F1}";
                 case SensorType.Clock:
-                    return $"{1e-3f * Sensor.Value:F1}";
-                case SensorType.Load:
-                    return $"{Sensor.Value:F0}";
+                    return $"{sensorValue:F1}";
                 case SensorType.Temperature:
-                    return _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit ? $"{UnitManager.CelsiusToFahrenheit(Sensor.Value):F0}" : $"{Sensor.Value:F0}";
+                    return $"{sensorValue:F0}";
+                case SensorType.Load:
+                    return $"{sensorValue:F0}";
                 case SensorType.Fan:
-                    return $"{1e-3f * Sensor.Value:F1}";
+                    return $"{sensorValue:F1}";
                 case SensorType.Flow:
-                    return $"{1e-3f * Sensor.Value:F1}";
+                    return $"{sensorValue:F1}";
                 case SensorType.Control:
-                    return $"{Sensor.Value:F0}";
+                    return $"{sensorValue:F0}";
                 case SensorType.Level:
-                    return $"{Sensor.Value:F0}";
-                case SensorType.Power:
-                    return $"{Sensor.Value:F0}";
-                case SensorType.Data:
-                    return $"{Sensor.Value:F0}";
+                    return $"{sensorValue:F0}";
                 case SensorType.Factor:
-                    return $"{Sensor.Value:F1}";
+                    return $"{sensorValue:F1}";
+                case SensorType.Power:
+                    return $"{sensorValue:F0}";
+                case SensorType.Data:
+                    return $"{sensorValue:F0}";
             }
             return "-";
         }
@@ -195,14 +219,15 @@ namespace LibreHardwareMonitor.UI
         private Icon CreateTransparentIcon()
         {
             string text = GetString();
+
             int count = 0;
             for (int i = 0; i < text.Length; i++)
-                if ((text[i] >= '0' && text[i] <= '9') || text[i] == '-')
+                if (text[i] >= '0' && text[i] <= '9' || text[i] == '-')
                     count++;
-            bool small = count > 2;
+            bool longValue = count > 2;
 
             _graphics.Clear(Color.Black);
-            TextRenderer.DrawText(_graphics, text, small ? _smallFont : _font, new Point(-2, small ? 1 : 0), Color.White, Color.Black);
+            TextRenderer.DrawText(_graphics, text, longValue ? _smallFont : _font, new Point(-2, longValue ? 1 : 0), Color.White, Color.Black);
             BitmapData data = _bitmap.LockBits(new Rectangle(0, 0, _bitmap.Width, _bitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             IntPtr scan0 = data.Scan0;
 
@@ -268,44 +293,31 @@ namespace LibreHardwareMonitor.UI
 
             icon?.Dispose();
 
-            string format = "";
-            switch (Sensor.SensorType)
-            {
-                case SensorType.Voltage: format = "\n{0}: {1:F2} V"; break;
-                case SensorType.Clock: format = "\n{0}: {1:F0} MHz"; break;
-                case SensorType.Load: format = "\n{0}: {1:F1} %"; break;
-                case SensorType.Fan: format = "\n{0}: {1:F0} RPM"; break;
-                case SensorType.Flow: format = "\n{0}: {1:F0} L/h"; break;
-                case SensorType.Control: format = "\n{0}: {1:F1} %"; break;
-                case SensorType.Level: format = "\n{0}: {1:F1} %"; break;
-                case SensorType.Power: format = "\n{0}: {1:F0} W"; break;
-                case SensorType.Data: format = "\n{0}: {1:F0} GB"; break;
-                case SensorType.Factor: format = "\n{0}: {1:F3} GB"; break;
-            }
-            string formattedValue = string.Format(format, Sensor.Name, Sensor.Value);
+            float? value = Sensor.Value;
+
+            string format = _unitManager.GetFormatWithUnit(Sensor.SensorType, value);
 
             if (Sensor.SensorType == SensorType.Temperature)
             {
-                if (_unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
-                {
-                    format = "\n{0}: {1:F1} °F";
-                    formattedValue = string.Format(format, Sensor.Name, UnitManager.CelsiusToFahrenheit(Sensor.Value));
-                }
-                else
-                {
-                    format = "\n{0}: {1:F1} °C";
-                    formattedValue = string.Format(format, Sensor.Name, Sensor.Value);
-                }
+                value = _unitManager.LocalizeTemperature(value);
             }
+            if (Sensor.SensorType == SensorType.Throughput)
+            {
+                value = _unitManager.ScaleThroughput(value);
+            }
+
+            string formattedValue = string.Format("\n{0}: " + format, Sensor.Name, value);
 
             string hardwareName = Sensor.Hardware.Name;
 
-            hardwareName = hardwareName.Substring(0, Math.Min(63 - formattedValue.Length, hardwareName.Length));
+            hardwareName = hardwareName.Substring(0, Math.Min(MaxToolTipLength - formattedValue.Length, hardwareName.Length));
 
             string text = hardwareName + formattedValue;
 
-            if (text.Length > 63)
+            if (text.Length > MaxToolTipLength)
+            {
                 text = null;
+            }
 
             _notifyIcon.Text = text;
             _notifyIcon.Visible = true;

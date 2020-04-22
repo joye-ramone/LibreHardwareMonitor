@@ -306,7 +306,7 @@ namespace LibreHardwareMonitor.UI
             celsiusMenuItem.Checked = _unitManager.TemperatureUnit != TemperatureUnit.Fahrenheit;
             fahrenheitMenuItem.Checked = !celsiusMenuItem.Checked;
 
-            _server = new HttpServer(_root, _settings.GetValue("listenerPort", 8085));
+            _server = new HttpServer(_root, _settings.GetValue("listenerPort", 8085), _unitManager);
 
             if (_server.PlatformNotSupported)
             {

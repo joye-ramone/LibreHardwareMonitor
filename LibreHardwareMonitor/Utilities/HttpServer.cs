@@ -26,14 +26,16 @@ namespace LibreHardwareMonitor.Utilities
     {
         private readonly HttpListener _listener;
         private readonly Node _root;
+        private readonly UnitManager _unitManager;
 
         private Thread _listenerThread;
 
         public int ListenerPort { get; set; }
 
-        public HttpServer(Node node, int port)
+        public HttpServer(Node node, int port, UnitManager unitManager)
         {
             _root = node;
+            _unitManager = unitManager;
             ListenerPort = port;
 
             try
@@ -201,7 +203,7 @@ namespace LibreHardwareMonitor.Utilities
                             throw new ArgumentNullException("action", "No value provided");
                         case "get":
                             result["value"] = sensorNode.Sensor.Value;
-                            result["format"] = sensorNode.Format;
+                            result["format"] = _unitManager.GetFormat(sensorNode.Sensor.SensorType);
                             break;
                         default:
                             throw new ArgumentException("Unknown action type " + dict["action"]);

@@ -12,22 +12,6 @@ namespace LibreHardwareMonitor.UI
 {
     public sealed class ScaledPlotModel : PlotModel
     {
-        internal static readonly Dictionary<SensorType, string> Units = new Dictionary<SensorType, string>
-        {
-            { SensorType.Voltage, "V" },
-            { SensorType.Clock, "MHz" },
-            { SensorType.Load, "%" },
-            { SensorType.Fan, "RPM" },
-            { SensorType.Flow, "L/h" },
-            { SensorType.Control, "%" },
-            { SensorType.Level, "%" },
-            { SensorType.Factor, "1" },
-            { SensorType.Power, "W" },
-            { SensorType.Data, "GB" },
-            { SensorType.Frequency, "Hz" },
-            { SensorType.Temperature, "" } // should be set on refresh depending on current settings
-        };
-
         private readonly TimeSpanAxis _timeAxis = new TimeSpanAxis();
 
         private readonly IDictionary<SensorType, LinearAxis> _axes = new SortedDictionary<SensorType, LinearAxis>();
@@ -61,11 +45,7 @@ namespace LibreHardwareMonitor.UI
                 if (_showValueAxesLabels)
                 {
                     axis.Title = a.Key.ToString();
-
-                    if (Units.ContainsKey(a.Key))
-                    {
-                        axis.Unit = Units[a.Key];
-                    }
+                    axis.Unit = _unitManager.GetUnit(a.Key);
                 }
                 else
                 {
@@ -182,10 +162,7 @@ namespace LibreHardwareMonitor.UI
                     _settings.GetValue("plotPanel.Min" + axis.Key, float.NaN),
                     _settings.GetValue("plotPanel.Max" + axis.Key, float.NaN));
 
-                if (Units.ContainsKey(type))
-                {
-                    axis.Unit = Units[type];
-                }
+                axis.Unit = _unitManager.GetUnit(type);
 
                 _axes.Add(type, axis);
                 _annotations.Add(type, annotation);
@@ -363,16 +340,13 @@ namespace LibreHardwareMonitor.UI
             AutoScaleAllYAxes();
         }
 
-        private static string GetTrackerFormat(ISensor sensor)
+        private string GetTrackerFormat(ISensor sensor)
         {
             string typeName = sensor.SensorType.ToString();
 
             string format = "{0}\nTime: {2:hh\\:mm\\:ss\\.fff}\n" + typeName + ": {4:.##}";
 
-            if (Units.ContainsKey(sensor.SensorType))
-            {
-                format += " " + Units[sensor.SensorType];
-            }
+            format += " " + _unitManager.GetUnit(sensor.SensorType);
 
             return format;
         }
@@ -390,7 +364,7 @@ namespace LibreHardwareMonitor.UI
                 {
                     if (_showValueAxesLabels)
                     {
-                        axis.Unit = _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit ? "°F" : "°C";
+                        axis.Unit = _unitManager.GetUnit(SensorType.Temperature);
                     }
 
                     _prevTemperatureUnit = _unitManager.TemperatureUnit;

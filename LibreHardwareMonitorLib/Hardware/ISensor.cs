@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace LibreHardwareMonitor.Hardware
 {
-    public enum SensorType
+    public enum SensorType // total 14
     {
         Voltage, // V
         Clock, // MHz

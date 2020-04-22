@@ -97,23 +97,21 @@ namespace LibreHardwareMonitor.Rtss
 
                 if (item.SensorType == SensorType.Temperature)
                 {
-                    if (_unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
-                    {
-                        v = UnitManager.CelsiusToFahrenheit(v);
-                    }
+                    v = _unitManager.LocalizeTemperature(v);
+                }
+                if (item.SensorType == SensorType.Throughput)
+                {
+                    v = _unitManager.ScaleThroughput(v);
                 }
 
-                return string.Format(GetFormat(item.SensorType), v);
+                return string.Format(_unitManager.GetFormat(item.SensorType), v);
             }
 
             string FormatUnit(RtssDisplayItem item)
             {
-                if (item.SensorType != SensorType.Temperature)
-                {
-                    return ScaledPlotModel.Units[item.SensorType];
-                }
+                float? v = item.Value();
 
-                return _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit ? "°F" : "°C";
+                return _unitManager.GetUnit(item.SensorType, v);
             }
 
             string result = RtssTags;
@@ -207,32 +205,6 @@ namespace LibreHardwareMonitor.Rtss
         private static string HexConverter(Color c)
         {
             return c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
-        }
-
-        private static string GetFormat(SensorType sensorType)
-        {
-            switch (sensorType)
-            {
-                case SensorType.Fan:
-                    return "{0:F0}";
-                case SensorType.Clock:
-                case SensorType.Load:
-                case SensorType.Flow:
-                case SensorType.Control:
-                case SensorType.Level:
-                case SensorType.Power:
-                case SensorType.Data:
-                case SensorType.Frequency:
-                case SensorType.Throughput:
-                case SensorType.SmallData:
-                case SensorType.Temperature:
-                    return "{0:F1}";
-                case SensorType.Voltage:
-                case SensorType.Factor:
-                    return "{0:F3}";
-            }
-
-            return "{0:F1}";
         }
     }
 }
