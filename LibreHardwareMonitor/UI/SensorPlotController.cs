@@ -67,7 +67,8 @@ namespace LibreHardwareMonitor.UI
                     ForeColor = SystemColors.InfoText,
                     BorderStyle = BorderStyle.FixedSingle,
                     AutoSize = true,
-                    Padding = new Padding(2)
+                    Padding = new Padding(2),
+                    Visible = false
                 };
             }
 
@@ -124,15 +125,6 @@ namespace LibreHardwareMonitor.UI
 
             private void ShowTracker(TrackerHitResult data)
             {
-                //PlotView.ShowTracker(result);
-
-                //this.trackerLabel.Text = data.ToString();
-                //this.trackerLabel.Top = (int)data.Position.Y - this.trackerLabel.Height;
-                //this.trackerLabel.Left = (int)data.Position.X - this.trackerLabel.Width / 2;
-                //this.trackerLabel.Visible = true;
-
-                // This is for stop flickering tooltip
-
                 var parent = (Control)PlotView;
 
                 _toolTip.Text = data.ToString();
@@ -152,13 +144,13 @@ namespace LibreHardwareMonitor.UI
 
             private void HideTracker()
             {
-                //PlotView.HideTracker();
                 _toolTip.Visible = false;
             }
 
             public override void Started(OxyMouseEventArgs e)
             {
                 _currentSeries = PlotView.ActualModel?.GetSeriesFromPoint(e.Position);
+
                 Delta(e);
             }
 

@@ -711,7 +711,7 @@ namespace LibreHardwareMonitor.UI
 
             _settings.SetValue("ShowHideHotKey", (int)_showHideHotKey);
 
-            _plotPanel.SetCurrentSettings();
+            _plotPanel.SaveCurrentSettings();
 
             foreach (TreeColumn column in treeView.Columns)
                 _settings.SetValue("treeView.Columns." + column.Header + ".Width", column.Width);
@@ -1013,8 +1013,14 @@ namespace LibreHardwareMonitor.UI
         private void SysTrayHideShow()
         {
             Visible = !Visible;
+
             if (Visible)
+            {
                 Activate();
+
+                treeView.Invalidate();
+                _plotPanel.InvalidatePlot();
+            }
         }
 
         protected override void WndProc(ref Message m)
