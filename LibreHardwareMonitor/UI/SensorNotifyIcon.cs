@@ -48,7 +48,7 @@ namespace LibreHardwareMonitor.UI
             Color = settings.GetValue(new Identifier(sensor.Identifier, "traycolor").ToString(), defaultColor);
 
             ContextMenu contextMenu = new ContextMenu();
-            MenuItem hideShowItem = new MenuItem("Hide/Show");
+            MenuItem hideShowItem = new MenuItem("Hide/Show") { DefaultItem = true };
             hideShowItem.Click += delegate
             {
                 sensorSystemTray.SendHideShowCommand();

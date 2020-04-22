@@ -31,8 +31,8 @@ namespace LibreHardwareMonitor.Utilities
         public HttpServer(Node node, int port, UnitManager unitManager)
         {
             _root = node;
-            _unitManager = unitManager;
             ListenerPort = port;
+            _unitManager = unitManager;
 
             try
             {

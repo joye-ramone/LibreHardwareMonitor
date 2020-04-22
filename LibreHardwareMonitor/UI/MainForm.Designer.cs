@@ -113,11 +113,10 @@ namespace LibreHardwareMonitor.UI
             this.timeWindow6hMenuItem = new System.Windows.Forms.MenuItem();
             this.timeWindow12hMenuItem = new System.Windows.Forms.MenuItem();
             this.timeWindow24hMenuItem = new System.Windows.Forms.MenuItem();
-            this.webMenuItemSeparator = new System.Windows.Forms.MenuItem();
+            this.externalMenuItemSeparator = new System.Windows.Forms.MenuItem();
             this.webMenuItem = new System.Windows.Forms.MenuItem();
             this.runWebServerMenuItem = new System.Windows.Forms.MenuItem();
             this.serverPortMenuItem = new System.Windows.Forms.MenuItem();
-            this.rtssMenuItemSeparator = new System.Windows.Forms.MenuItem();
             this.rtssMenuItem = new System.Windows.Forms.MenuItem();
             this.rtssMenuItemRun = new System.Windows.Forms.MenuItem();
             this.rtssMenuItemOptions = new System.Windows.Forms.MenuItem();
@@ -128,6 +127,7 @@ namespace LibreHardwareMonitor.UI
             this.timer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer = new LibreHardwareMonitor.UI.SplitContainerAdv();
             this.treeView = new Aga.Controls.Tree.TreeViewAdv();
+            this.wmiMenuItem = new System.Windows.Forms.MenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.SuspendLayout();
@@ -391,10 +391,10 @@ namespace LibreHardwareMonitor.UI
             this.logSensorsMenuItem,
             this.loggingIntervalMenuItem,
             this.sensorValuesTimeWindowMenuItem,
-            this.webMenuItemSeparator,
+            this.externalMenuItemSeparator,
             this.webMenuItem,
-            this.rtssMenuItemSeparator,
-            this.rtssMenuItem});
+            this.rtssMenuItem,
+            this.wmiMenuItem});
             this.optionsMenuItem.Text = "Options";
             // 
             // startMinMenuItem
@@ -661,10 +661,10 @@ namespace LibreHardwareMonitor.UI
             this.timeWindow24hMenuItem.RadioCheck = true;
             this.timeWindow24hMenuItem.Text = "24h";
             // 
-            // webMenuItemSeparator
+            // externalMenuItemSeparator
             // 
-            this.webMenuItemSeparator.Index = 11;
-            this.webMenuItemSeparator.Text = "-";
+            this.externalMenuItemSeparator.Index = 11;
+            this.externalMenuItemSeparator.Text = "-";
             // 
             // webMenuItem
             // 
@@ -685,14 +685,9 @@ namespace LibreHardwareMonitor.UI
             this.serverPortMenuItem.Text = "Port";
             this.serverPortMenuItem.Click += new System.EventHandler(this.ServerPortMenuItem_Click);
             // 
-            // rtssMenuItemSeparator
-            // 
-            this.rtssMenuItemSeparator.Index = 13;
-            this.rtssMenuItemSeparator.Text = "-";
-            // 
             // rtssMenuItem
             // 
-            this.rtssMenuItem.Index = 14;
+            this.rtssMenuItem.Index = 13;
             this.rtssMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.rtssMenuItemRun,
             this.rtssMenuItemOptions});
@@ -789,6 +784,11 @@ namespace LibreHardwareMonitor.UI
             this.treeView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TreeView_MouseMove);
             this.treeView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TreeView_MouseUp);
             // 
+            // wmiMenuItem
+            // 
+            this.wmiMenuItem.Index = 14;
+            this.wmiMenuItem.Text = "Expose to Wmi";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -848,7 +848,7 @@ namespace LibreHardwareMonitor.UI
         private System.Windows.Forms.MenuItem minMenuItem;
         private System.Windows.Forms.MenuItem maxMenuItem;
         private System.Windows.Forms.MenuItem temperatureUnitsMenuItem;
-        private System.Windows.Forms.MenuItem webMenuItemSeparator;
+        private System.Windows.Forms.MenuItem externalMenuItemSeparator;
         private System.Windows.Forms.MenuItem celsiusMenuItem;
         private System.Windows.Forms.MenuItem fahrenheitMenuItem;
         private System.Windows.Forms.MenuItem MenuItem2;
@@ -900,10 +900,10 @@ namespace LibreHardwareMonitor.UI
         private System.Windows.Forms.MenuItem timeWindow6hMenuItem;
         private System.Windows.Forms.MenuItem timeWindow12hMenuItem;
         private System.Windows.Forms.MenuItem timeWindow24hMenuItem;
-        private System.Windows.Forms.MenuItem rtssMenuItemSeparator;
         private System.Windows.Forms.MenuItem rtssMenuItem;
         private System.Windows.Forms.MenuItem rtssMenuItemRun;
         private System.Windows.Forms.MenuItem rtssMenuItemOptions;
+        private System.Windows.Forms.MenuItem wmiMenuItem;
     }
 }
 

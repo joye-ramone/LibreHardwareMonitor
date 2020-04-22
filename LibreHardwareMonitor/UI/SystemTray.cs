@@ -34,7 +34,7 @@ namespace LibreHardwareMonitor.UI
             _mainIcon = new NotifyIconAdv();
 
             ContextMenu contextMenu = new ContextMenu();
-            MenuItem hideShowItem = new MenuItem("Hide/Show");
+            MenuItem hideShowItem = new MenuItem("Hide/Show") { DefaultItem = true };
             hideShowItem.Click += delegate
             {
                 SendHideShowCommand();

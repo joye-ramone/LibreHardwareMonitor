@@ -26,7 +26,7 @@ namespace LibreHardwareMonitor.Wmi
             Name = hardware.Name;
             Identifier = hardware.Identifier.ToString();
             HardwareType = hardware.HardwareType.ToString();
-            Parent = (hardware.Parent != null)
+            Parent = hardware.Parent != null
               ? hardware.Parent.Identifier.ToString()
               : "";
         }

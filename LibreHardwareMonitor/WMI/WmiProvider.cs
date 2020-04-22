@@ -6,10 +6,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Management.Instrumentation;
 using LibreHardwareMonitor.Hardware;
 
 [assembly: Instrumented("root/LibreHardwareMonitor")]
+
 [System.ComponentModel.RunInstaller(true)]
 public class InstanceInstaller : DefaultManagementProjectInstaller { }
 
@@ -21,30 +23,59 @@ namespace LibreHardwareMonitor.Wmi
     /// </summary>
     public class WmiProvider : IDisposable
     {
-        private List<IWmiObject> _activeInstances;
+        private readonly Dictionary<string, IWmiObject> _activeInstances = new Dictionary<string, IWmiObject>();
+
+        private readonly IComputer _computer;
 
         public WmiProvider(IComputer computer)
         {
-            _activeInstances = new List<IWmiObject>();
-            foreach (IHardware hardware in computer.Hardware)
+            _computer = computer ?? throw new ArgumentNullException(nameof(computer));
+        }
+
+        public void Start()
+        {
+            foreach (IHardware hardware in _computer.Hardware)
             {
                 ComputerHardwareAdded(hardware);
             }
-            computer.HardwareAdded += ComputerHardwareAdded;
-            computer.HardwareRemoved += ComputerHardwareRemoved;
+
+            _computer.HardwareAdded += ComputerHardwareAdded;
+            _computer.HardwareRemoved += ComputerHardwareRemoved;
+        }
+
+        public void Stop()
+        {
+            _computer.HardwareAdded -= ComputerHardwareAdded;
+            _computer.HardwareRemoved -= ComputerHardwareRemoved;
+
+            foreach (IHardware hardware in _computer.Hardware)
+            {
+                ComputerHardwareRemoved(hardware);
+            }
+
+            foreach (IWmiObject item in _activeInstances.Values)
+            {
+                try
+                {
+                    Revoke(item);
+                }
+                catch { }
+            }
+
+            _activeInstances.Clear();
         }
 
         public void Update()
         {
-            foreach (IWmiObject instance in _activeInstances)
+            foreach (IWmiObject instance in _activeInstances.Values)
+            {
                 instance.Update();
+            }
         }
-
-        #region Eventhandlers
 
         private void ComputerHardwareAdded(IHardware hardware)
         {
-            if (!Exists(hardware.Identifier.ToString()))
+            if (!_activeInstances.ContainsKey(hardware.Identifier.ToString()))
             {
                 foreach (ISensor sensor in hardware.Sensors)
                     HardwareSensorAdded(sensor);
@@ -53,29 +84,31 @@ namespace LibreHardwareMonitor.Wmi
                 hardware.SensorRemoved += HardwareSensorRemoved;
 
                 Hardware hw = new Hardware(hardware);
-                _activeInstances.Add(hw);
+                _activeInstances[hw.Identifier] = hw;
 
                 try
                 {
-                    Instrumentation.Publish(hw);
+                    Publish(hw);
                 }
                 catch { }
             }
 
             foreach (IHardware subHardware in hardware.SubHardware)
+            {
                 ComputerHardwareAdded(subHardware);
+            }
         }
 
         private void HardwareSensorAdded(ISensor data)
         {
             Sensor sensor = new Sensor(data);
-            _activeInstances.Add(sensor);
+            _activeInstances[sensor.Identifier] = sensor;
 
             try
             {
-                Instrumentation.Publish(sensor);
+                Publish(sensor);
             }
-            catch { }
+            catch {  }
         }
 
         private void ComputerHardwareRemoved(IHardware hardware)
@@ -97,46 +130,29 @@ namespace LibreHardwareMonitor.Wmi
             RevokeInstance(sensor.Identifier.ToString());
         }
 
-        #endregion
-
-        #region Helpers
-
-        private bool Exists(string identifier)
-        {
-            return _activeInstances.Exists(h => h.Identifier == identifier);
-        }
-
         private void RevokeInstance(string identifier)
         {
-            int instanceIndex = _activeInstances.FindIndex(
-              item => item.Identifier == identifier.ToString()
-            );
-
-            if (instanceIndex == -1)
+            if (!_activeInstances.TryGetValue(identifier, out IWmiObject item))
+            {
                 return;
+            }
 
             try
             {
-                Instrumentation.Revoke(_activeInstances[instanceIndex]);
+                Revoke(item);
             }
             catch { }
 
-            _activeInstances.RemoveAt(instanceIndex);
+            _activeInstances.Remove(identifier);
         }
 
-        #endregion
+        private static void Revoke(IWmiObject item) => Instrumentation.Revoke(item);
+
+        private static void Publish(IWmiObject hw) => Instrumentation.Publish(hw);
 
         public void Dispose()
         {
-            foreach (IWmiObject instance in _activeInstances)
-            {
-                try
-                {
-                    Instrumentation.Revoke(instance);
-                }
-                catch { }
-            }
-            _activeInstances = null;
+            Stop();
         }
     }
 }

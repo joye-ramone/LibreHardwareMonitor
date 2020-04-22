@@ -16,14 +16,16 @@ namespace LibreHardwareMonitor.Wmi
 
         #region WMI Exposed
 
+        public int Index { get; }
+
         public string SensorType { get; }
         public string Identifier { get; }
         public string Parent { get; }
         public string Name { get; }
+
         public float Value { get; private set; }
         public float Min { get; private set; }
         public float Max { get; private set; }
-        public int Index { get; }
 
         #endregion
 

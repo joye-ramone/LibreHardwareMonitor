@@ -60,11 +60,13 @@ namespace LibreHardwareMonitor.UI
 
         private readonly UserOption _runRtssService;
         private readonly UserOption _runWebServer;
+        private readonly UserOption _wmiService;
         private readonly UserOption _logSensors;
+
         private readonly UserRadioGroup _loggingInterval;
         private readonly UserRadioGroup _sensorValuesTimeWindow;
 
-        //private readonly WmiProvider _wmiProvider;
+        private readonly WmiProvider _wmiProvider;
         private readonly Logger _logger;
 
         private readonly bool _enableHideHotKey = false;
@@ -161,6 +163,8 @@ namespace LibreHardwareMonitor.UI
             _systemTray.HideShowCommand += HideShowClick;
             _systemTray.ExitCommand += ExitClick;
 
+            bool externalMenuVisible = false;
+
             int p = (int)Environment.OSVersion.Platform;
             if (p == 4 || p == 128)
             { // Unix
@@ -180,15 +184,30 @@ namespace LibreHardwareMonitor.UI
                 treeView.RowHeight = Math.Max(treeView.Font.Height + 1, 18);
                 _gadget = new SensorGadget(_computer, _settings, _unitManager);
                 _gadget.HideShowCommand += HideShowClick;
-                //_wmiProvider = new WmiProvider(_computer);
+
+                _wmiProvider = new WmiProvider(_computer);
+
+                _wmiService = new UserOption("wmiMenuItem", false, wmiMenuItem, _settings);
+                _wmiService.Changed += (sender, a) =>
+                {
+                    if (_wmiService.Value)
+                        _wmiProvider.Start();
+                    else
+                        _wmiProvider.Stop();
+                };
+
+                externalMenuVisible = true;
             }
 
             _rtssAdapter = new RtssAdapter(_settings, _unitManager);
 
             if (_rtssAdapter.PlatformNotSupported)
             {
-                rtssMenuItemSeparator.Visible = false;
                 rtssMenuItem.Visible = false;
+            }
+            else
+            {
+                externalMenuVisible = true;
             }
 
             _runRtssService = new UserOption("rtssMenuItemRun", false, rtssMenuItemRun, _settings);
@@ -327,8 +346,11 @@ namespace LibreHardwareMonitor.UI
 
             if (_server.PlatformNotSupported)
             {
-                webMenuItemSeparator.Visible = false;
                 webMenuItem.Visible = false;
+            }
+            else
+            {
+                externalMenuVisible = true;
             }
 
             _runWebServer = new UserOption("runWebServerMenuItem", false, runWebServerMenuItem, _settings);
@@ -398,6 +420,8 @@ namespace LibreHardwareMonitor.UI
                 }));
             };
 
+            externalMenuItemSeparator.Visible = externalMenuVisible;
+
             InitializePlotForm();
             InitializeSplitter();
 
@@ -443,6 +467,8 @@ namespace LibreHardwareMonitor.UI
             _rtssAdapter.Stop();
 
             _root.SaveSortOrder();
+
+            _wmiProvider.Dispose();
 
             _computer.Close();
 
@@ -736,9 +762,9 @@ namespace LibreHardwareMonitor.UI
             if (_gadget != null && _gadget.SensorsCount > 0)
                 _gadget?.Redraw();
 
-            //_wmiProvider?.Update();
+            _wmiProvider?.Update();
 
-            if (_logSensors != null && _logSensors.Value && _delayCount >= 4)
+            if (_logSensors.Value && _delayCount >= 4)
                 _logger.Log();
 
             if (_delayCount < 4)
