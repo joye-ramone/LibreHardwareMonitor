@@ -398,7 +398,7 @@ namespace LibreHardwareMonitor.UI
             {
                 HotkeyManager.Current.AddOrReplace("OnHotKey", _showHideHotKey, OnHotKey);
             }
-            catch (HotkeyAlreadyRegisteredException e)
+            catch (HotkeyAlreadyRegisteredException)
             { }
 
             // Create a handle, otherwise calling Close() does not fire FormClosed
