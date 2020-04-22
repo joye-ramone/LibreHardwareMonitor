@@ -21,10 +21,12 @@ namespace LibreHardwareMonitor.UI
         private bool _visible;
         private bool _alwaysOnTop;
         private byte _opacity = 255;
+
         private Point _location = new Point(100, 100);
         private Size _size = new Size(130, 84);
-        private IntPtr _handleBitmap;
         private Size _bufferSize;
+
+        private IntPtr _handleBitmap;
         private Graphics _graphics;
 
         public event EventHandler SizeChanged;
@@ -213,6 +215,7 @@ namespace LibreHardwareMonitor.UI
             IntPtr handleScreen = NativeMethods.GetDC(IntPtr.Zero);
             _handleBitmap = NativeMethods.CreateCompatibleDC(handleScreen);
             NativeMethods.ReleaseDC(IntPtr.Zero, handleScreen);
+
             _bufferSize = _size;
 
             BITMAPINFO info = new BITMAPINFO();

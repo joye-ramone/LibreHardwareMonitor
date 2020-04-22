@@ -19,6 +19,7 @@ namespace LibreHardwareMonitor.UI
     public class StartupManager
     {
         private const string RegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+
         private bool _startup;
 
         public StartupManager()
@@ -139,9 +140,10 @@ namespace LibreHardwareMonitor.UI
             }
         }
 
-        private void CreateTask()
+        private static void CreateTask()
         {
             TaskDefinition taskDefinition = TaskService.Instance.NewTask();
+
             taskDefinition.RegistrationInfo.Description = "Starts LibreHardwareMonitor on Windows startup.";
 
             taskDefinition.Triggers.Add(new LogonTrigger());

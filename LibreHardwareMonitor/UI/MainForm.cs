@@ -65,7 +65,7 @@ namespace LibreHardwareMonitor.UI
         private readonly UserRadioGroup _loggingInterval;
         private readonly UserRadioGroup _sensorValuesTimeWindow;
 
-        private readonly WmiProvider _wmiProvider;
+        //private readonly WmiProvider _wmiProvider;
         private readonly Logger _logger;
 
         private readonly Keys _showHideHotKey = Keys.Control | Keys.Shift | Keys.Oemtilde;
@@ -178,10 +178,11 @@ namespace LibreHardwareMonitor.UI
                 treeView.RowHeight = Math.Max(treeView.Font.Height + 1, 18);
                 _gadget = new SensorGadget(_computer, _settings, _unitManager);
                 _gadget.HideShowCommand += HideShowClick;
-                _wmiProvider = new WmiProvider(_computer);
+                //_wmiProvider = new WmiProvider(_computer);
             }
 
             _rtssAdapter = new RtssAdapter(_settings, _unitManager);
+            _rtssAdapter.Start();
 
             _logger = new Logger(_computer);
 

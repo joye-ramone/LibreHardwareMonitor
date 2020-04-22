@@ -39,7 +39,7 @@ namespace LibreHardwareMonitor.UI
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
+            this.version = new System.Windows.Forms.Label();
             this.projectLinkLabel = new System.Windows.Forms.LinkLabel();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.licenseLinkLabel = new System.Windows.Forms.LinkLabel();
@@ -87,15 +87,15 @@ namespace LibreHardwareMonitor.UI
             this.label2.TabIndex = 3;
             this.label2.Text = "Copyright © LibreHardwareMonitor and Contributors";
             //
-            // label3
+            // version
             //
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(74, 29);
-            this.label3.Margin = new System.Windows.Forms.Padding(10, 0, 10, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(127, 13);
-            this.label3.TabIndex = 4;
-            this.label3.Text = "Version 9.0.30729.1 Beta";
+            this.version.AutoSize = true;
+            this.version.Location = new System.Drawing.Point(74, 29);
+            this.version.Margin = new System.Windows.Forms.Padding(10, 0, 10, 0);
+            this.version.Name = "version";
+            this.version.Size = new System.Drawing.Size(127, 13);
+            this.version.TabIndex = 4;
+            this.version.Text = "Version 9.0.30729.1 Beta";
             //
             // projectLinkLabel
             //
@@ -141,7 +141,7 @@ namespace LibreHardwareMonitor.UI
             this.Controls.Add(this.licenseLinkLabel);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Controls.Add(this.projectLinkLabel);
-            this.Controls.Add(this.label3);
+            this.Controls.Add(this.version);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pictureBox1);
@@ -165,7 +165,7 @@ namespace LibreHardwareMonitor.UI
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label version;
         private System.Windows.Forms.LinkLabel projectLinkLabel;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
         private System.Windows.Forms.LinkLabel licenseLinkLabel;

@@ -373,8 +373,7 @@ namespace LibreHardwareMonitor.UI
             ShowBalloonTip(timeout, BalloonTipTitle, BalloonTipText, BalloonTipIcon);
         }
 
-        public void ShowBalloonTip(int timeout, string tipTitle, string tipText,
-          ToolTipIcon tipIcon)
+        public void ShowBalloonTip(int timeout, string tipTitle, string tipText, ToolTipIcon tipIcon)
         {
             if (_genericNotifyIcon != null)
                 _genericNotifyIcon.ShowBalloonTip(timeout, tipTitle, tipText, tipIcon);
@@ -384,16 +383,19 @@ namespace LibreHardwareMonitor.UI
 
         private class NotifyIconWindowsImplementation : Component
         {
-
             private static int _nextId;
             private readonly object _syncObj = new object();
+
             private Icon _icon;
             private string _text = "";
             private readonly int _id;
-            private bool _created;
+
             private NotifyIconNativeWindow _window;
+
+            private bool _created;
             private bool _doubleClickDown;
             private bool _visible;
+
             private readonly MethodInfo _commandDispatch;
 
             public event EventHandler BalloonTipClicked;
@@ -408,8 +410,10 @@ namespace LibreHardwareMonitor.UI
             public event MouseEventHandler MouseUp;
 
             public string BalloonTipText { get; set; }
-            public ToolTipIcon BalloonTipIcon { get; set; }
             public string BalloonTipTitle { get; set; }
+
+            public ToolTipIcon BalloonTipIcon { get; set; }
+
             public ContextMenu ContextMenu { get; set; }
             public ContextMenuStrip ContextMenuStrip { get; set; }
 
@@ -480,6 +484,7 @@ namespace LibreHardwareMonitor.UI
 
                 _id = ++_nextId;
                 _window = new NotifyIconNativeWindow(this);
+
                 UpdateNotifyIcon(_visible);
             }
 
@@ -506,6 +511,7 @@ namespace LibreHardwareMonitor.UI
                         _window.ReleaseHandle();
                     }
                 }
+
                 base.Dispose(disposing);
             }
 
@@ -555,18 +561,18 @@ namespace LibreHardwareMonitor.UI
                 if (ContextMenu != null)
                 {
                     ContextMenu.GetType().InvokeMember("OnPopup",
-                      BindingFlags.NonPublic | BindingFlags.InvokeMethod |
-                      BindingFlags.Instance, null, ContextMenu,
-                      new object[] { EventArgs.Empty });
+                      BindingFlags.NonPublic | BindingFlags.InvokeMethod | BindingFlags.Instance, null, 
+                      ContextMenu, new object[] { EventArgs.Empty });
 
                     NativeMethods.TrackPopupMenuEx(new HandleRef(ContextMenu, ContextMenu.Handle), 72, p.X, p.Y, new HandleRef(_window, _window.Handle), IntPtr.Zero);
                     NativeMethods.PostMessage(new HandleRef(_window, _window.Handle), WM_NULL, 0, 0);
+
                     return;
                 }
 
                 ContextMenuStrip?.GetType().InvokeMember("ShowInTaskbar",
-                                                         BindingFlags.NonPublic | BindingFlags.InvokeMethod |
-                                                         BindingFlags.Instance, null, ContextMenuStrip, new object[] { p.X, p.Y });
+                                                         BindingFlags.NonPublic | BindingFlags.InvokeMethod | BindingFlags.Instance, null, 
+                                                         ContextMenuStrip, new object[] { p.X, p.Y });
             }
 
             private void UpdateNotifyIcon(bool showNotifyIcon)
@@ -694,8 +700,7 @@ namespace LibreHardwareMonitor.UI
                         switch ((int)message.LParam)
                         {
                             case WM_MOUSEMOVE:
-                                MouseMove?.Invoke(this,
-  new MouseEventArgs(Control.MouseButtons, 0, 0, 0, 0));
+                                MouseMove?.Invoke(this, new MouseEventArgs(Control.MouseButtons, 0, 0, 0, 0));
                                 return;
                             case WM_LBUTTONDOWN:
                                 ProcessMouseDown(MouseButtons.Left, false);

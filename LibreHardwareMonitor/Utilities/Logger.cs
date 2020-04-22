@@ -20,14 +20,16 @@ namespace LibreHardwareMonitor.Utilities
         private readonly IComputer _computer;
 
         private DateTime _day = DateTime.MinValue;
+        private DateTime _lastLoggedTime = DateTime.MinValue;
+
         private string _fileName;
+
         private string[] _identifiers;
         private ISensor[] _sensors;
-        private DateTime _lastLoggedTime = DateTime.MinValue;
 
         public Logger(IComputer computer)
         {
-            _computer = computer;
+            _computer = computer ?? throw new ArgumentNullException(nameof(computer));
             _computer.HardwareAdded += HardwareAdded;
             _computer.HardwareRemoved += HardwareRemoved;
         }
@@ -80,11 +82,6 @@ namespace LibreHardwareMonitor.Utilities
             }
         }
 
-        private static string GetFileName(DateTime date)
-        {
-            return AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + string.Format(FileNameFormat, date);
-        }
-
         private bool OpenExistingLogFile()
         {
             if (!File.Exists(_fileName))
@@ -132,6 +129,7 @@ namespace LibreHardwareMonitor.Utilities
                 list.Add(sensor);
             });
             visitor.VisitComputer(_computer);
+
             _sensors = list.ToArray();
             _identifiers = _sensors.Select(s => s.Identifier.ToString()).ToArray();
 
@@ -203,6 +201,11 @@ namespace LibreHardwareMonitor.Utilities
             catch (IOException) { }
 
             _lastLoggedTime = now;
+        }
+
+        private static string GetFileName(DateTime date)
+        {
+            return AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + string.Format(FileNameFormat, date);
         }
     }
 }

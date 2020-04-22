@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using LibreHardwareMonitor.Hardware;
 using LibreHardwareMonitor.UI;
 using LibreHardwareMonitor.Utilities;
@@ -28,30 +29,46 @@ namespace LibreHardwareMonitor.Rtss
         private const string RtssNewLine = "\n";
         private const string RtssNewLine2 = "\n\n";
 
-        public bool GroupByType { get; } = false;
-        public bool UseSensorNameAsKey { get; } = true;
+        public bool GroupByType { get; }
+        public bool UseSensorNameAsKey { get; }
+        public bool AddFpsDetails { get; }
 
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
+        private readonly RtssService _rtssService;
 
         private readonly List<RtssDisplayItem> _displayItems = new List<RtssDisplayItem>();
 
-        private readonly OSD _osd;
+        private bool _enabled;
+        private bool _initializing;
+
+        private OSD _osd;
+
+        public string RtssServiceLocation
+        {
+            get { return _rtssService.RtssServiceLocation; }
+            set { _rtssService.RtssServiceLocation = value; }
+        }
+
+        public bool IsRunning
+        {
+            get => _rtssService.IsRunning;
+        }
+
+        public bool IsAvailable
+        {
+            get => _rtssService.IsAvailable;
+        }
 
         public RtssAdapter(PersistentSettings settings, UnitManager unitManager)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _unitManager = unitManager ?? throw new ArgumentNullException(nameof(unitManager));
-
-            try
-            {
-                _osd = new OSD("LibreHardwareMonitor.RtssAdapter");
-            }
-            catch(Exception)
-            { }
+            _rtssService = new RtssService(_settings);
 
             GroupByType = _settings.GetValue("RtssAdapter.GroupByType", false);
             UseSensorNameAsKey = _settings.GetValue("RtssAdapter.UseSensorNameAsKey", false);
+            AddFpsDetails = _settings.GetValue("RtssAdapter.AddFpsDetails", true);
         }
 
         public void SetSensors(List<ISensor> sensors, IDictionary<ISensor, Color> colors)
@@ -68,18 +85,38 @@ namespace LibreHardwareMonitor.Rtss
             }));
         }
 
+        private int _try;
+
         public void InvalidateData()
         {
-            if (_osd != null)
+            if (_enabled)
             {
-                if (_displayItems.Count > 0)
+                if (_osd == null && !_initializing)
                 {
-                    string data = FormatData();
-                    _osd.Update(data);
+                    if (_try <= 0 && _rtssService.IsRunning)
+                    {
+                        Open();
+
+                        _try = 5;
+                    }
+
+                    _try--;
                 }
-                else
+
+                if (_osd != null)
                 {
-                    _osd.Update(string.Empty);
+                    _try = 0;
+
+                    string data = _displayItems.Count > 0 ? FormatData() : string.Empty;
+
+                    try
+                    {
+                        _osd.Update(data);
+                    }
+                    catch (Exception)
+                    {
+                        Close();
+                    }
                 }
             }
         }
@@ -111,7 +148,7 @@ namespace LibreHardwareMonitor.Rtss
                 return $"<A0>{formatted}<A><A1><S2> {unit}<S><A>";
             }
 
-            string result = RtssTags;
+            string result;
 
             //add order by sensor types in both cases
             //hardware should be ordered in same way as in tree
@@ -147,7 +184,7 @@ namespace LibreHardwareMonitor.Rtss
                     return group;
                 });
 
-                result += string.Join(RtssNewLine2, d);
+                result = string.Join(RtssNewLine2, d);
             }
             else
             {
@@ -180,10 +217,20 @@ namespace LibreHardwareMonitor.Rtss
                     return group;
                 });
 
-                result += string.Join(RtssNewLine2, d);
+                result = string.Join(RtssNewLine2, d);
             }
 
-            return result;
+            if (AddFpsDetails)
+            {
+                if (result.Length > 0)
+                {
+                    result += RtssNewLine2;
+                }
+
+                result += "<C2><APP><C>	<A0><FR><A><A1><S1> FPS<S><A> <A0><FT><A><A1><S2> ms<S><A>";
+            }
+
+            return RtssTags + result;
         }
 
         public void SaveCurrentSettings()
@@ -192,9 +239,66 @@ namespace LibreHardwareMonitor.Rtss
              _settings.SetValue("RtssAdapter.UseSensorNameAsKey", UseSensorNameAsKey);
         }
 
+        public void Start()
+        {
+            if (_enabled)
+                return;
+
+            if (!_rtssService.IsRunning)
+            {
+                if (_initializing)
+                    return;
+
+                _initializing = true;
+
+                if (_rtssService.TryRun())
+                {
+                    Task.Delay(TimeSpan.FromSeconds(2)).ContinueWith(t =>
+                    {
+                        _initializing = false;
+                    }, TaskScheduler.FromCurrentSynchronizationContext());
+                }
+                else
+                {
+                    _initializing = false;
+                }
+            }
+
+            _enabled = true;
+        }
+
         public void Stop()
         {
-            _osd?.Dispose();
+            if (!_enabled)
+                return;
+
+            Close();
+
+            _enabled = false;
+        }
+
+        private void Open()
+        {
+            try
+            {
+                _osd = new OSD("LibreHardwareMonitor.RtssAdapter");
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void Close()
+        {
+            try
+            {
+                _osd?.Dispose();
+            }
+            catch (Exception)
+            {
+            }
+
+            _osd = null;
         }
 
         private static string HexConverter(Color c)
