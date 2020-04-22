@@ -29,9 +29,41 @@ namespace LibreHardwareMonitor.Rtss
         private const string RtssNewLine = "\n";
         private const string RtssNewLine2 = "\n\n";
 
-        public bool GroupByType { get; }
-        public bool UseSensorNameAsKey { get; }
-        public bool AddFpsDetails { get; }
+        private bool _groupByType;
+
+        public bool GroupByType
+        {
+            get { return _groupByType; }
+            set
+            {
+                _groupByType = value;
+                _settings.SetValue("RtssAdapter.GroupByType", value);
+            }
+        }
+
+        private bool _useSensorNameAsKey;
+
+        public bool UseSensorNameAsKey
+        {
+            get { return _useSensorNameAsKey; }
+            set
+            {
+                _useSensorNameAsKey = value;
+                _settings.SetValue("RtssAdapter.UseSensorNameAsKey", value);
+            }
+        }
+
+        private bool _addFpsDetails;
+
+        public bool AddFpsDetails
+        {
+            get { return _addFpsDetails; }
+            set
+            {
+                _addFpsDetails = value;
+                _settings.SetValue("RtssAdapter.AddFpsDetails", value);
+            }
+        }
 
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
@@ -50,14 +82,21 @@ namespace LibreHardwareMonitor.Rtss
             set { _rtssService.RtssServiceLocation = value; }
         }
 
-        public bool IsRunning
+        public bool IsServiceRunning
         {
             get => _rtssService.IsRunning;
         }
 
-        public bool IsAvailable
+        public bool IsServiceAvailable
         {
             get => _rtssService.IsAvailable;
+        }
+
+        public bool PlatformNotSupported { get; } = false;
+
+        public bool IsActive
+        {
+            get => _osd != null;
         }
 
         public RtssAdapter(PersistentSettings settings, UnitManager unitManager)
@@ -66,9 +105,9 @@ namespace LibreHardwareMonitor.Rtss
             _unitManager = unitManager ?? throw new ArgumentNullException(nameof(unitManager));
             _rtssService = new RtssService(_settings);
 
-            GroupByType = _settings.GetValue("RtssAdapter.GroupByType", false);
-            UseSensorNameAsKey = _settings.GetValue("RtssAdapter.UseSensorNameAsKey", false);
-            AddFpsDetails = _settings.GetValue("RtssAdapter.AddFpsDetails", true);
+            _groupByType = _settings.GetValue("RtssAdapter.GroupByType", false);
+            _useSensorNameAsKey = _settings.GetValue("RtssAdapter.UseSensorNameAsKey", false);
+            _addFpsDetails = _settings.GetValue("RtssAdapter.AddFpsDetails", true);
         }
 
         public void SetSensors(List<ISensor> sensors, IDictionary<ISensor, Color> colors)
@@ -231,12 +270,6 @@ namespace LibreHardwareMonitor.Rtss
             }
 
             return RtssTags + result;
-        }
-
-        public void SaveCurrentSettings()
-        {
-             _settings.SetValue("RtssAdapter.GroupByType", GroupByType);
-             _settings.SetValue("RtssAdapter.UseSensorNameAsKey", UseSensorNameAsKey);
         }
 
         public void Start()

@@ -18,9 +18,7 @@ using LibreHardwareMonitor.Hardware;
 using LibreHardwareMonitor.Rtss;
 using LibreHardwareMonitor.Utilities;
 using LibreHardwareMonitor.Wmi;
-using NHotkey;
-using NHotkey.WindowsForms;
-
+using Open.WinKeyboardHook;
 
 namespace LibreHardwareMonitor.UI
 {
@@ -60,6 +58,7 @@ namespace LibreHardwareMonitor.UI
 
         private readonly UserOption _showGadget;
 
+        private readonly UserOption _runRtssService;
         private readonly UserOption _runWebServer;
         private readonly UserOption _logSensors;
         private readonly UserRadioGroup _loggingInterval;
@@ -68,7 +67,10 @@ namespace LibreHardwareMonitor.UI
         //private readonly WmiProvider _wmiProvider;
         private readonly Logger _logger;
 
+        private readonly bool _enableHideHotKey = false;
         private readonly Keys _showHideHotKey = Keys.Control | Keys.Shift | Keys.Oemtilde;
+
+        private readonly IKeyboardInterceptor _interceptor;
 
         private bool _selectionDragging;
         private int _delayCount;
@@ -182,7 +184,21 @@ namespace LibreHardwareMonitor.UI
             }
 
             _rtssAdapter = new RtssAdapter(_settings, _unitManager);
-            _rtssAdapter.Start();
+
+            if (_rtssAdapter.PlatformNotSupported)
+            {
+                rtssMenuItemSeparator.Visible = false;
+                rtssMenuItem.Visible = false;
+            }
+
+            _runRtssService = new UserOption("rtssMenuItemRun", false, rtssMenuItemRun, _settings);
+            _runRtssService.Changed += delegate
+            {
+                if (_runRtssService.Value)
+                    _rtssAdapter.Start();
+                else
+                    _rtssAdapter.Stop();
+            };
 
             _logger = new Logger(_computer);
 
@@ -399,13 +415,11 @@ namespace LibreHardwareMonitor.UI
                 Show();
 
             _showHideHotKey = (Keys)_settings.GetValue("ShowHideHotKey", (int)_showHideHotKey);
+            _enableHideHotKey = _settings.GetValue("EnableHideHotKey", false);
 
-            try
-            {
-                HotkeyManager.Current.AddOrReplace("OnHotKey", _showHideHotKey, OnHotKey);
-            }
-            catch (HotkeyAlreadyRegisteredException)
-            { }
+            _interceptor = new KeyboardInterceptor();
+            _interceptor.KeyUp += OnHotKey;
+            _interceptor.StartCapturing();
 
             // Create a handle, otherwise calling Close() does not fire FormClosed
 
@@ -440,9 +454,17 @@ namespace LibreHardwareMonitor.UI
             }
         }
 
-        private void OnHotKey(object sender, HotkeyEventArgs e)
+        private void OnHotKey(object sender, KeyEventArgs e)
         {
-            SysTrayHideShow();
+            if (!_enableHideHotKey)
+                return;
+
+            if ((e.KeyData & _showHideHotKey) == e.KeyData)
+            {
+                SysTrayHideShow();
+
+                e.SuppressKeyPress = true;
+            }
         }
 
         private void InitializeSplitter()
@@ -732,8 +754,6 @@ namespace LibreHardwareMonitor.UI
 
             _plotPanel.SaveCurrentSettings();
 
-            _rtssAdapter.SaveCurrentSettings();
-
             foreach (TreeColumn column in treeView.Columns)
                 _settings.SetValue("treeView.Columns." + column.Header + ".Width", column.Width);
 
@@ -805,10 +825,12 @@ namespace LibreHardwareMonitor.UI
 
             Visible = false;
             _systemTray.IsMainIconEnabled = false;
+
             timer.Enabled = false;
 
             SessionEnd();
 
+            _interceptor.StopCapturing();
             _systemTray.Dispose();
 
             Application.Exit();
@@ -1155,6 +1177,11 @@ namespace LibreHardwareMonitor.UI
         private void ServerPortMenuItem_Click(object sender, EventArgs e)
         {
             new PortForm(_server).ShowDialog();
+        }
+
+        private void RtssMenuItemOptions_Click(object sender, EventArgs e)
+        {
+            new RtssOptionForm(_rtssAdapter).ShowDialog();
         }
     }
 }

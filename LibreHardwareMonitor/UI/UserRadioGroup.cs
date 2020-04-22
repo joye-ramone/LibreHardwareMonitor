@@ -13,17 +13,21 @@ namespace LibreHardwareMonitor.UI
     public class UserRadioGroup
     {
         private readonly string _name;
-        private int _value;
         private readonly MenuItem[] _menuItems;
-        private event EventHandler _changed;
         private readonly PersistentSettings _settings;
+
+        private int _value;
+        
+        private event EventHandler _changed;
 
         public UserRadioGroup(string name, int value, MenuItem[] menuItems, PersistentSettings settings)
         {
-            _settings = settings;
             _name = name;
-            _value = name != null ? settings.GetValue(name, value) : value;
+
             _menuItems = menuItems;
+            _settings = settings;
+
+            _value = name != null ? settings.GetValue(name, value) : value;
             _value = Math.Max(Math.Min(_value, menuItems.Length - 1), 0);
 
             for (int i = 0; i < _menuItems.Length; i++)
@@ -46,8 +50,10 @@ namespace LibreHardwareMonitor.UI
                 if (_value != value)
                 {
                     _value = value;
+
                     if (_name != null)
                         _settings.SetValue(_name, value);
+
                     for (int i = 0; i < _menuItems.Length; i++)
                         _menuItems[i].Checked = i == value;
 

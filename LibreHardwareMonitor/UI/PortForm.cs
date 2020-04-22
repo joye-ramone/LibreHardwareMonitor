@@ -18,14 +18,17 @@ namespace LibreHardwareMonitor.UI
         private readonly HttpServer _server;
         private readonly string _localIp;
 
-        public PortForm(HttpServer server)
+        public PortForm()
         {
             InitializeComponent();
 
+            CancelButton = portCancelButton;
+        }
+
+        public PortForm(HttpServer server) : this()
+        {
             _localIp = GetLocalIP();
             _server = server;
-
-            CancelButton = portCancelButton;
         }
 
         private string GetLocalIP()
