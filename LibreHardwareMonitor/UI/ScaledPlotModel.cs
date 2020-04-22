@@ -16,7 +16,6 @@ namespace LibreHardwareMonitor.UI
         {
             { SensorType.Voltage, "V" },
             { SensorType.Clock, "MHz" },
-            { SensorType.Temperature, "°C" },
             { SensorType.Load, "%" },
             { SensorType.Fan, "RPM" },
             { SensorType.Flow, "L/h" },
@@ -25,7 +24,8 @@ namespace LibreHardwareMonitor.UI
             { SensorType.Factor, "1" },
             { SensorType.Power, "W" },
             { SensorType.Data, "GB" },
-            { SensorType.Frequency, "Hz" }
+            { SensorType.Frequency, "Hz" },
+            { SensorType.Temperature, "" } // should be set on refresh depending on current settings
         };
 
         private readonly TimeSpanAxis _timeAxis = new TimeSpanAxis();
@@ -343,14 +343,7 @@ namespace LibreHardwareMonitor.UI
 
                 configure?.Invoke(sensor, series);
 
-                string typeName = sensor.SensorType.ToString();
-
-                series.TrackerFormatString = "{0}\nTime: {2:hh\\:mm\\:ss\\.fff}\n" + typeName + ": {4:.##}";
-
-                if (Units.ContainsKey(sensor.SensorType))
-                {
-                    series.TrackerFormatString += " " + Units[sensor.SensorType];
-                }
+                series.TrackerFormatString = GetTrackerFormat(sensor);
 
                 Series.Add(series);
 
@@ -370,6 +363,22 @@ namespace LibreHardwareMonitor.UI
             AutoScaleAllYAxes();
         }
 
+        private static string GetTrackerFormat(ISensor sensor)
+        {
+            string typeName = sensor.SensorType.ToString();
+
+            string format = "{0}\nTime: {2:hh\\:mm\\:ss\\.fff}\n" + typeName + ": {4:.##}";
+
+            if (Units.ContainsKey(sensor.SensorType))
+            {
+                format += " " + Units[sensor.SensorType];
+            }
+
+            return format;
+        }
+
+        private TemperatureUnit? _prevTemperatureUnit;
+
         public void UpdateAxes()
         {
             foreach (KeyValuePair<SensorType, LinearAxis> pair in _axes)
@@ -377,14 +386,21 @@ namespace LibreHardwareMonitor.UI
                 LinearAxis axis = pair.Value;
                 SensorType type = pair.Key;
 
-                if (_showValueAxesLabels && type == SensorType.Temperature)
-                    axis.Unit = _unitManager.TemperatureUnit == TemperatureUnit.Celsius ? "°C" : "°F";
+                if (type == SensorType.Temperature && _prevTemperatureUnit != _unitManager.TemperatureUnit)
+                {
+                    if (_showValueAxesLabels)
+                    {
+                        axis.Unit = _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit ? "°F" : "°C";
+                    }
 
-                if (!_stackedAxes)
-                    continue;
+                    _prevTemperatureUnit = _unitManager.TemperatureUnit;
+                }
 
-                LineAnnotation annotation = _annotations[pair.Key];
-                annotation.Y = axis.ActualMaximum;
+                if (_stackedAxes)
+                {
+                    LineAnnotation annotation = _annotations[pair.Key];
+                    annotation.Y = axis.ActualMaximum;
+                }
             }
         }
     }

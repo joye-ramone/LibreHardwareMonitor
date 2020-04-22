@@ -13,7 +13,7 @@ namespace LibreHardwareMonitor.Hardware
     {
         Voltage, // V
         Clock, // MHz
-        Temperature, // °C
+        Temperature, // °C,°F
         Load, // %
         Frequency, // Hz
         Fan, // RPM

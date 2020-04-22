@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using Aga.Controls.Tree;
 using Aga.Controls.Tree.NodeControls;
 using LibreHardwareMonitor.Hardware;
+using LibreHardwareMonitor.Rtss;
 using LibreHardwareMonitor.Utilities;
 using LibreHardwareMonitor.Wmi;
 using NHotkey;
@@ -35,6 +36,8 @@ namespace LibreHardwareMonitor.UI
 
         private readonly SystemTray _systemTray;
         private readonly SensorGadget _gadget;
+        private readonly RtssAdapter _rtssAdapter;
+        private readonly HttpServer _server;
 
         private readonly Color[] _plotColorPalette;
         private readonly PlotPanel _plotPanel;
@@ -178,6 +181,8 @@ namespace LibreHardwareMonitor.UI
                 _wmiProvider = new WmiProvider(_computer);
             }
 
+            _rtssAdapter = new RtssAdapter(_settings, _unitManager);
+
             _logger = new Logger(_computer);
 
             _plotColorPalette = new Color[13];
@@ -298,12 +303,12 @@ namespace LibreHardwareMonitor.UI
                     _gadget.Visible = _showGadget.Value;
             };
 
-            celsiusMenuItem.Checked = _unitManager.TemperatureUnit == TemperatureUnit.Celsius;
+            celsiusMenuItem.Checked = _unitManager.TemperatureUnit != TemperatureUnit.Fahrenheit;
             fahrenheitMenuItem.Checked = !celsiusMenuItem.Checked;
 
-            Server = new HttpServer(_root, _settings.GetValue("listenerPort", 8085));
+            _server = new HttpServer(_root, _settings.GetValue("listenerPort", 8085));
 
-            if (Server.PlatformNotSupported)
+            if (_server.PlatformNotSupported)
             {
                 webMenuItemSeparator.Visible = false;
                 webMenuItem.Visible = false;
@@ -313,9 +318,9 @@ namespace LibreHardwareMonitor.UI
             _runWebServer.Changed += delegate
             {
                 if (_runWebServer.Value)
-                    Server.StartHttpListener();
+                    _server.StartHttpListener();
                 else
-                    Server.StopHttpListener();
+                    _server.StopHttpListener();
             };
 
             _logSensors = new UserOption("logSensorsMenuItem", false, logSensorsMenuItem, _settings);
@@ -419,11 +424,19 @@ namespace LibreHardwareMonitor.UI
         private void SessionEnd()
         {
             SaveCollapsedNodeState(treeView);
+
+            _rtssAdapter.Stop();
+
             _root.SaveSortOrder();
+
             _computer.Close();
+
             SaveConfiguration();
+
             if (_runWebServer.Value)
-                Server.Quit();
+            {
+                _server.Quit();
+            }
         }
 
         private void OnHotKey(object sender, HotkeyEventArgs e)
@@ -661,6 +674,9 @@ namespace LibreHardwareMonitor.UI
 
             _sensorPlotColors = colors;
             _plotPanel.SetSensors(selected, colors);
+
+            // move to other place 
+            _rtssAdapter.SetSensors(selected, colors);
         }
 
         private void NodeTextBoxText_EditorShowing(object sender, CancelEventArgs e)
@@ -687,8 +703,10 @@ namespace LibreHardwareMonitor.UI
             if (Visible)
             {
                 treeView.Invalidate();
-                _plotPanel.InvalidatePlot();
+                _plotPanel.InvalidateData();
             }
+
+            _rtssAdapter.InvalidateData();
 
             _systemTray.Redraw();
 
@@ -713,10 +731,12 @@ namespace LibreHardwareMonitor.UI
 
             _plotPanel.SaveCurrentSettings();
 
+            _rtssAdapter.SaveCurrentSettings();
+
             foreach (TreeColumn column in treeView.Columns)
                 _settings.SetValue("treeView.Columns." + column.Header + ".Width", column.Width);
 
-            _settings.SetValue("listenerPort", Server.ListenerPort);
+            _settings.SetValue("listenerPort", _server.ListenerPort);
 
             string fileName = Path.ChangeExtension(Application.ExecutablePath, ".config");
 
@@ -1019,7 +1039,7 @@ namespace LibreHardwareMonitor.UI
                 Activate();
 
                 treeView.Invalidate();
-                _plotPanel.InvalidatePlot();
+                _plotPanel.InvalidateData();
             }
         }
 
@@ -1133,9 +1153,7 @@ namespace LibreHardwareMonitor.UI
 
         private void ServerPortMenuItem_Click(object sender, EventArgs e)
         {
-            new PortForm(this).ShowDialog();
+            new PortForm(_server).ShowDialog();
         }
-
-        public HttpServer Server { get; }
     }
 }

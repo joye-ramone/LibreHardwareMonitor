@@ -9,43 +9,43 @@ using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
 using System.Diagnostics;
+using LibreHardwareMonitor.Utilities;
 
 namespace LibreHardwareMonitor.UI
 {
     public partial class PortForm : Form
     {
-        private readonly MainForm _parent;
-        private readonly string _localIP;
-        public PortForm(MainForm m)
+        private readonly HttpServer _server;
+        private readonly string _localIp;
+
+        public PortForm(HttpServer server)
         {
             InitializeComponent();
-            _parent = m;
-            _localIP = GetLocalIP();
+
+            _localIp = GetLocalIP();
+            _server = server;
 
             CancelButton = portCancelButton;
         }
 
-        private void PortTextBox_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private string GetLocalIP()
         {
-            IPHostEntry host;
-            string localIP = "?";
-            host = Dns.GetHostEntry(Dns.GetHostName());
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+
             foreach (IPAddress ip in host.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    localIP = ip.ToString();
+                {
+                    return ip.ToString();
+                }
             }
-            return localIP;
+
+            return "?";
         }
 
         private void PortNumericUpDn_ValueChanged(object sender, EventArgs e)
         {
-            string url = "http://" + _localIP + ":" + portNumericUpDn.Value + "/";
+            string url = "http://" + _localIp + ":" + portNumericUpDn.Value + "/";
             webServerLinkLabel.Text = url;
             webServerLinkLabel.Links.Remove(webServerLinkLabel.Links[0]);
             webServerLinkLabel.Links.Add(0, webServerLinkLabel.Text.Length, url);
@@ -53,7 +53,8 @@ namespace LibreHardwareMonitor.UI
 
         private void PortOKButton_Click(object sender, EventArgs e)
         {
-            _parent.Server.ListenerPort = (int)portNumericUpDn.Value;
+            _server.ListenerPort = (int)portNumericUpDn.Value;
+
             Close();
         }
 
@@ -64,7 +65,7 @@ namespace LibreHardwareMonitor.UI
 
         private void PortForm_Load(object sender, EventArgs e)
         {
-            portNumericUpDn.Value = _parent.Server.ListenerPort;
+            portNumericUpDn.Value = _server.ListenerPort;
             PortNumericUpDn_ValueChanged(null, null);
         }
 

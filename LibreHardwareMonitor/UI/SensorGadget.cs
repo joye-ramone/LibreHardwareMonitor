@@ -601,6 +601,7 @@ namespace LibreHardwareMonitor.UI
             if (sensor.Value.HasValue)
             {
                 string format = "";
+
                 switch (sensor.SensorType)
                 {
                     case SensorType.Voltage:
@@ -611,9 +612,6 @@ namespace LibreHardwareMonitor.UI
                         break;
                     case SensorType.Frequency:
                         format = "{0:F0} Hz";
-                        break;
-                    case SensorType.Temperature:
-                        format = "{0:F1} °C";
                         break;
                     case SensorType.Fan:
                         format = "{0:F0} RPM";
@@ -635,9 +633,16 @@ namespace LibreHardwareMonitor.UI
                         break;
                 }
 
-                if (sensor.SensorType == SensorType.Temperature && _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
+                if (sensor.SensorType == SensorType.Temperature)
                 {
-                    formatted = $"{UnitManager.CelsiusToFahrenheit(sensor.Value):F1} °F";
+                    if (_unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
+                    {
+                        formatted = $"{UnitManager.CelsiusToFahrenheit(sensor.Value):F1} °F";
+                    }
+                    else
+                    {
+                        formatted = $"{sensor.Value:F1} °C";
+                    }
                 }
                 else if (sensor.SensorType == SensorType.Throughput)
                 {
@@ -648,34 +653,34 @@ namespace LibreHardwareMonitor.UI
                         {
                             switch (sensor.Value)
                             {
-                                case 100000000:
+                                case 100 * 1000 * 1000:
                                     result = "100Mbps";
                                     break;
-                                case 1000000000:
+                                case 1000 * 1000 * 1000:
                                     result = "1Gbps";
                                     break;
                                 default:
-                                {
-                                    if (sensor.Value < 1024)
-                                        result = $"{sensor.Value:F0} bps";
-                                    else if (sensor.Value < 1048576)
-                                        result = $"{sensor.Value / 1024:F1} Kbps";
-                                    else if (sensor.Value < 1073741824)
-                                        result = $"{sensor.Value / 1048576:F1} Mbps";
-                                    else
-                                        result = $"{sensor.Value / 1073741824:F1} Gbps";
-                                }
+                                    {
+                                        if (sensor.Value < 1024)
+                                            result = $"{sensor.Value:F0} bps";
+                                        else if (sensor.Value < 1024 * 1024)
+                                            result = $"{sensor.Value / 1024:F1} Kbps";
+                                        else if (sensor.Value < 1024 * 1024 * 1024)
+                                            result = $"{sensor.Value / 1024 * 1024:F1} Mbps";
+                                        else
+                                            result = $"{sensor.Value / 1024 * 1024 * 1024:F1} Gbps";
+                                    }
                                     break;
                             }
                         }
                             break;
                         default:
-                        {
-                            if (sensor.Value < 1048576)
-                                result = $"{sensor.Value / 1024:F1} KB/s";
-                            else
-                                result = $"{sensor.Value / 1048576:F1} MB/s";
-                        }
+                            {
+                                if (sensor.Value < 1024 * 1024)
+                                    result = $"{sensor.Value / 1024:F1} KB/s";
+                                else
+                                    result = $"{sensor.Value / 1024 * 1024:F1} MB/s";
+                            }
                             break;
                     }
 

@@ -75,6 +75,9 @@
     <Reference Include="OxyPlot.WindowsForms, Version=1.0.0.0, Culture=neutral, PublicKeyToken=245eacd6b5d2d338, processorArchitecture=MSIL">
       <HintPath>..\packages\OxyPlot.WindowsForms.1.0.0\lib\net45\OxyPlot.WindowsForms.dll</HintPath>
     </Reference>
+    <Reference Include="RTSSSharedMemoryNET">
+      <HintPath>..\External\RTSSSharedMemoryNET.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Drawing" />
@@ -87,6 +90,7 @@
     <Compile Include="..\LibreHardwareMonitorLib\Properties\AssemblyVersion.cs">
       <Link>Properties\AssemblyVersion.cs</Link>
     </Compile>
+    <Compile Include="Rtss\RtssAdapter.cs" />
     <Compile Include="UI\ComputerNode.cs" />
     <Compile Include="UI\IExpandPersistNode.cs" />
     <Compile Include="UI\ScaledPlotModel.cs" />

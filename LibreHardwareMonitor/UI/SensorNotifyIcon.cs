@@ -274,7 +274,6 @@ namespace LibreHardwareMonitor.UI
                 case SensorType.Voltage: format = "\n{0}: {1:F2} V"; break;
                 case SensorType.Clock: format = "\n{0}: {1:F0} MHz"; break;
                 case SensorType.Load: format = "\n{0}: {1:F1} %"; break;
-                case SensorType.Temperature: format = "\n{0}: {1:F1} °C"; break;
                 case SensorType.Fan: format = "\n{0}: {1:F0} RPM"; break;
                 case SensorType.Flow: format = "\n{0}: {1:F0} L/h"; break;
                 case SensorType.Control: format = "\n{0}: {1:F1} %"; break;
@@ -285,13 +284,22 @@ namespace LibreHardwareMonitor.UI
             }
             string formattedValue = string.Format(format, Sensor.Name, Sensor.Value);
 
-            if (Sensor.SensorType == SensorType.Temperature && _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
+            if (Sensor.SensorType == SensorType.Temperature)
             {
-                format = "\n{0}: {1:F1} °F";
-                formattedValue = string.Format(format, Sensor.Name, UnitManager.CelsiusToFahrenheit(Sensor.Value));
+                if (_unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
+                {
+                    format = "\n{0}: {1:F1} °F";
+                    formattedValue = string.Format(format, Sensor.Name, UnitManager.CelsiusToFahrenheit(Sensor.Value));
+                }
+                else
+                {
+                    format = "\n{0}: {1:F1} °C";
+                    formattedValue = string.Format(format, Sensor.Name, Sensor.Value);
+                }
             }
 
             string hardwareName = Sensor.Hardware.Name;
+
             hardwareName = hardwareName.Substring(0, Math.Min(63 - formattedValue.Length, hardwareName.Length));
 
             string text = hardwareName + formattedValue;

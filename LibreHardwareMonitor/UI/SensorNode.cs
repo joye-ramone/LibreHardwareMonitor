@@ -15,79 +15,16 @@ namespace LibreHardwareMonitor.UI
     {
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
+
         private bool _plot;
         private Color? _penColor;
+
         public string Format { get; set; } = "";
-
-        public string ValueToString(float? value)
-        {
-            if (value.HasValue)
-            {
-                switch (Sensor.SensorType)
-                {
-                    case SensorType.Temperature when _unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit:
-                    {
-                        return $"{value * 1.8 + 32:F1} °F";
-                    }
-                    case SensorType.Throughput:
-                    {
-                        string result;
-                        switch (Sensor.Name)
-                        {
-                            case "Connection Speed":
-                            {
-                                switch (value)
-                                {
-                                    case 100000000:
-                                    {
-                                        result = "100Mbps";
-                                        break;
-                                    }
-                                    case 1000000000:
-                                    {
-                                        result = "1Gbps";
-                                        break;
-                                    }
-                                    default:
-                                    {
-                                        if (value < 1024)
-                                            result = $"{value:F0} bps";
-                                        else if (value < 1048576)
-                                            result = $"{value / 1024:F1} Kbps";
-                                        else if (value < 1073741824)
-                                            result = $"{value / 1048576:F1} Mbps";
-                                        else
-                                            result = $"{value / 1073741824:F1} Gbps";
-                                    }
-                                        break;
-                                }
-
-                                break;
-                            }
-                            default:
-                            {
-                                const int _1MB = 1048576;
-
-                                result = value < _1MB ? $"{value / 1024:F1} KB/s" : $"{value / _1MB:F1} MB/s";
-
-                                break;
-                            }
-                        }
-                        return result;
-                    }
-                    default:
-                    {
-                        return string.Format(Format, value);
-                    }
-                }
-            }
-
-            return "-";
-        }
 
         public SensorNode(ISensor sensor, PersistentSettings settings, UnitManager unitManager)
         {
             Sensor = sensor;
+
             _settings = settings;
             _unitManager = unitManager;
 
@@ -96,7 +33,6 @@ namespace LibreHardwareMonitor.UI
                 case SensorType.Voltage: Format = "{0:F3} V"; break;
                 case SensorType.Clock: Format = "{0:F1} MHz"; break;
                 case SensorType.Load: Format = "{0:F1} %"; break;
-                case SensorType.Temperature: Format = "{0:F1} °C"; break;
                 case SensorType.Fan: Format = "{0:F0} RPM"; break;
                 case SensorType.Flow: Format = "{0:F1} L/h"; break;
                 case SensorType.Control: Format = "{0:F1} %"; break;
@@ -111,6 +47,7 @@ namespace LibreHardwareMonitor.UI
 
             bool hidden = settings.GetValue(new Identifier(sensor.Identifier, "hidden").ToString(), sensor.IsDefaultHidden);
             base.IsVisible = !hidden;
+
             Plot = settings.GetValue(new Identifier(sensor.Identifier, "plot").ToString(), false);
             string id = new Identifier(sensor.Identifier, "penColor").ToString();
 
@@ -195,6 +132,75 @@ namespace LibreHardwareMonitor.UI
         public override int GetHashCode()
         {
             return Sensor.GetHashCode();
+        }
+
+        private string ValueToString(float? value)
+        {
+            if (value.HasValue)
+            {
+                switch (Sensor.SensorType)
+                {
+                    case SensorType.Temperature:
+                        {
+                            if (_unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
+                                return $"{UnitManager.CelsiusToFahrenheit(value):F1} °F";
+                            else
+                                return $"{value:F1} °C";
+                        }
+                    case SensorType.Throughput:
+                        {
+                            string result;
+                            switch (Sensor.Name)
+                            {
+                                case "Connection Speed":
+                                    {
+                                        switch (value)
+                                        {
+                                            case 100 * 1000 * 1000:
+                                                {
+                                                    result = "100Mbps";
+                                                    break;
+                                                }
+                                            case 1000 * 1000 * 1000:
+                                                {
+                                                    result = "1Gbps";
+                                                    break;
+                                                }
+                                            default:
+                                                {
+                                                    if (value < 1024)
+                                                        result = $"{value:F0} bps";
+                                                    else if (value < 1024 * 1024)
+                                                        result = $"{value / 1024:F1} Kbps";
+                                                    else if (value < 1024 * 1024 * 1024)
+                                                        result = $"{value / 1024 * 1024:F1} Mbps";
+                                                    else
+                                                        result = $"{value / 1024 * 1024 * 1024:F1} Gbps";
+                                                }
+                                                break;
+                                        }
+
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        const int _1MB = 1024 * 1024;
+
+                                        result = value < _1MB ? $"{value / 1024:F1} KB/s" : $"{value / _1MB:F1} MB/s";
+
+                                        break;
+                                    }
+                            }
+                            return result;
+                        }
+                    default:
+                        {
+                            return string.Format(Format, value);
+                        }
+                }
+            }
+
+            return "-";
         }
     }
 }

@@ -25,8 +25,11 @@ namespace LibreHardwareMonitor.Utilities
     public class HttpServer
     {
         private readonly HttpListener _listener;
-        private Thread _listenerThread;
         private readonly Node _root;
+
+        private Thread _listenerThread;
+
+        public int ListenerPort { get; set; }
 
         public HttpServer(Node node, int port)
         {
@@ -99,6 +102,7 @@ namespace LibreHardwareMonitor.Utilities
             { }
             catch (Exception)
             { }
+
             return true;
         }
 
@@ -140,34 +144,35 @@ namespace LibreHardwareMonitor.Utilities
             return null;
         }
 
-        public void SetSensorControlValue(SensorNode sNode, string value)
+        public void SetSensorControlValue(SensorNode node, string value)
         {
-            if (sNode.Sensor.Control == null)
+            if (node.Sensor.Control == null)
             {
-                throw new ArgumentException("Specified sensor '" + sNode.Sensor.Identifier + "' can not be set");
+                throw new ArgumentException("Specified sensor '" + node.Sensor.Identifier + "' can not be set");
             }
+
             if (value == "null")
             {
-                sNode.Sensor.Control.SetDefault();
+                node.Sensor.Control.SetDefault();
             }
             else
             {
-                sNode.Sensor.Control.SetSoftware(float.Parse(value, CultureInfo.InvariantCulture));
+                node.Sensor.Control.SetSoftware(float.Parse(value, CultureInfo.InvariantCulture));
             }
         }
 
-        //Handles "/Sensor" requests.
+        //Handles "/sensor" requests.
         //Parameters are taken from the query part of the URL.
         //Get:
-        //http://localhost:8085/Sensor?action=Get&id=/some/node/path/0
+        //http://localhost:8085/sensor?action=get&id=/some/node/path/0
         //The output is either:
         //{"result":"fail","message":"Some error message"}
         //or:
         //{"result":"ok","value":42.0, "format":"{0:F2} RPM"}
         //
         //Set:
-        //http://localhost:8085/Sensor?action=Set&id=/some/node/path/0&value=42.0
-        //http://localhost:8085/Sensor?action=Set&id=/some/node/path/0&value=null
+        //http://localhost:8085/sensor?action=set&id=/some/node/path/0&value=42.0
+        //http://localhost:8085/sensor?action=set&id=/some/node/path/0&value=null
         //The output is either:
         //{"result":"fail","message":"Some error message"}
         //or:
@@ -180,23 +185,23 @@ namespace LibreHardwareMonitor.Utilities
             {
                 if (dict.ContainsKey("id"))
                 {
-                    SensorNode sNode = FindSensor(_root, dict["id"]);
+                    SensorNode sensorNode = FindSensor(_root, dict["id"]);
 
-                    if (sNode == null)
+                    if (sensorNode == null)
                     {
                         throw new ArgumentException("Unknown id " + dict["id"] + " specified");
                     }
 
-                    switch (dict["action"])
+                    switch (dict["action"].ToLower())
                     {
-                        case "Set" when dict.ContainsKey("value"):
-                            SetSensorControlValue(sNode, dict["value"]);
+                        case "set" when dict.ContainsKey("value"):
+                            SetSensorControlValue(sensorNode, dict["value"]);
                             break;
-                        case "Set":
-                            throw new ArgumentNullException("No value provided");
-                        case "Get":
-                            result["value"] = sNode.Sensor.Value;
-                            result["format"] = sNode.Format;
+                        case "set":
+                            throw new ArgumentNullException("action", "No value provided");
+                        case "get":
+                            result["value"] = sensorNode.Sensor.Value;
+                            result["format"] = sensorNode.Format;
                             break;
                         default:
                             throw new ArgumentException("Unknown action type " + dict["action"]);
@@ -213,8 +218,8 @@ namespace LibreHardwareMonitor.Utilities
             }
         }
 
-        //Handles http POST requests in a REST like manner.
-        //Currently the only supported base URL is http://localhost:8085/Sensor.
+        // Handles http POST requests in a REST like manner.
+        // Currently the only supported base URL is http://localhost:8085/sensor.
         private string HandlePostRequest(HttpListenerRequest request)
         {
             JObject result = new JObject { ["result"] = "ok" };
@@ -223,17 +228,17 @@ namespace LibreHardwareMonitor.Utilities
             {
                 if (request.Url.Segments.Length == 2)
                 {
-                    if (request.Url.Segments[1] == "Sensor")
+                    if (string.Equals(request.Url.Segments[1], "sensor", StringComparison.OrdinalIgnoreCase))
                     {
                         HandleSensorRequest(request, result);
                     }
                     else
                     {
-                        throw new ArgumentException("Invalid URL ('" + request.Url.Segments[1] + "'), possible values: ['Sensor']");
+                        throw new ArgumentException("Invalid URL ('" + request.Url.Segments[1] + "'), possible values: ['sensor']");
                     }
                 }
                 else
-                    throw new ArgumentException("Empty URL, possible values: ['Sensor']");
+                    throw new ArgumentException("Empty URL, possible values: ['sensor']");
             }
             catch (Exception e)
             {
@@ -243,13 +248,14 @@ namespace LibreHardwareMonitor.Utilities
 #if DEBUG
             return result.ToString(Newtonsoft.Json.Formatting.Indented);
 #else
-      return result.ToString(Newtonsoft.Json.Formatting.None);
+            return result.ToString(Newtonsoft.Json.Formatting.None);
 #endif
         }
 
         private void ListenerCallback(IAsyncResult result)
         {
             HttpListener listener = (HttpListener)result.AsyncState;
+
             if (listener == null || !listener.IsListening)
                 return;
 
@@ -274,8 +280,9 @@ namespace LibreHardwareMonitor.Utilities
                 byte[] utfBytes = Encoding.UTF8.GetBytes(postResult);
 
                 context.Response.AddHeader("Cache-Control", "no-cache");
-                context.Response.ContentLength64 = utfBytes.Length;
+
                 context.Response.ContentType = "application/json";
+                context.Response.ContentLength64 = utfBytes.Length;
 
                 output.Write(utfBytes, 0, utfBytes.Length);
                 output.Close();
@@ -284,7 +291,7 @@ namespace LibreHardwareMonitor.Utilities
             {
                 string requestedFile = request.RawUrl.Substring(1);
 
-                if (requestedFile == "data.json")
+                if (string.Equals(requestedFile, "data.json", StringComparison.OrdinalIgnoreCase))
                 {
                     SendJson(context.Response);
                     return;
@@ -292,17 +299,18 @@ namespace LibreHardwareMonitor.Utilities
 
                 if (requestedFile.Contains("images_icon"))
                 {
-                    ServeResourceImage(context.Response,
-                      requestedFile.Replace("images_icon/", string.Empty));
+                    ServeResourceImage(context.Response, requestedFile.Replace("images_icon/", string.Empty));
                     return;
                 }
 
                 // default file to be served
                 if (string.IsNullOrEmpty(requestedFile))
+                {
                     requestedFile = "index.html";
+                }
 
-                string[] splits = requestedFile.Split('.');
-                string ext = splits[splits.Length - 1];
+                string ext = requestedFile.Substring(requestedFile.LastIndexOf(".", StringComparison.Ordinal) + 1);
+
                 ServeResourceFile(context.Response, "Web." + requestedFile.Replace('/', '.'), ext);
             }
             else
@@ -312,23 +320,21 @@ namespace LibreHardwareMonitor.Utilities
             }
         }
 
-        private void ServeResourceFile(HttpListenerResponse response, string name, string ext)
+        private static void ServeResourceFile(HttpListenerResponse response, string name, string ext)
         {
             // resource names do not support the hyphen
-            name = "LibreHardwareMonitor.Resources." +
-              name.Replace("custom-theme", "custom_theme");
+            name = "LibreHardwareMonitor.Resources." + name.Replace("custom-theme", "custom_theme");
 
-            string[] names =
-              Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            for (int i = 0; i < names.Length; i++)
+            string[] names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+            foreach (string t in names)
             {
-                if (names[i].Replace('\\', '.') == name)
+                if (t.Replace('\\', '.') == name)
                 {
-                    using (Stream stream = Assembly.GetExecutingAssembly().
-                      GetManifestResourceStream(names[i]))
+                    using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(t))
                     {
                         response.ContentType = GetContentType("." + ext);
                         response.ContentLength64 = stream.Length;
+
                         byte[] buffer = new byte[512 * 1024];
                         try
                         {
@@ -338,8 +344,10 @@ namespace LibreHardwareMonitor.Utilities
                             {
                                 output.Write(buffer, 0, len);
                             }
+
                             output.Flush();
                             output.Close();
+
                             response.Close();
                         }
                         catch (HttpListenerException)
@@ -357,38 +365,41 @@ namespace LibreHardwareMonitor.Utilities
             response.Close();
         }
 
-        private void ServeResourceImage(HttpListenerResponse response, string name)
+        private static void ServeResourceImage(HttpListenerResponse response, string name)
         {
             name = "LibreHardwareMonitor.Resources." + name;
 
             string[] names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
 
-            for (int i = 0; i < names.Length; i++)
+            foreach (string t in names)
             {
-                if (names[i].Replace('\\', '.') == name)
+                if (t.Replace('\\', '.') == name)
                 {
-                    using (Stream stream = Assembly.GetExecutingAssembly().
-                      GetManifestResourceStream(names[i]))
+                    using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(t))
                     {
-
-                        Image image = Image.FromStream(stream);
-                        response.ContentType = "image/png";
-                        try
+                        using (Image image = Image.FromStream(stream ?? throw new InvalidOperationException()))
                         {
-                            Stream output = response.OutputStream;
-                            using (MemoryStream ms = new MemoryStream())
+                            response.ContentType = "image/png";
+                            try
                             {
-                                image.Save(ms, ImageFormat.Png);
-                                ms.WriteTo(output);
+                                Stream output = response.OutputStream;
+                                using (MemoryStream ms = new MemoryStream())
+                                {
+                                    image.Save(ms, ImageFormat.Png);
+                                    ms.WriteTo(output);
+                                }
+
+                                output.Flush();
+                                output.Close();
+
+                                response.Close();
                             }
-                            output.Close();
+                            catch (HttpListenerException)
+                            {
+                            }
+
+                            return;
                         }
-                        catch (HttpListenerException)
-                        {
-                        }
-                        image.Dispose();
-                        response.Close();
-                        return;
                     }
                 }
             }
@@ -410,7 +421,11 @@ namespace LibreHardwareMonitor.Utilities
             json["Max"] = "Max";
             json["ImageURL"] = string.Empty;
 
-            JArray children = new JArray { GenerateJsonForNode(_root, ref nodeIndex) };
+            JArray children = new JArray
+            {
+                GenerateJsonForNode(_root, ref nodeIndex)
+            };
+
             json["Children"] = children;
 #if DEBUG
             string responseContent = json.ToString(Newtonsoft.Json.Formatting.Indented);
@@ -421,8 +436,9 @@ namespace LibreHardwareMonitor.Utilities
 
             response.AddHeader("Cache-Control", "no-cache");
             response.AddHeader("Access-Control-Allow-Origin", "*");
-            response.ContentLength64 = buffer.Length;
+
             response.ContentType = "application/json";
+            response.ContentLength64 = buffer.Length;
 
             try
             {
@@ -437,7 +453,7 @@ namespace LibreHardwareMonitor.Utilities
             response.Close();
         }
 
-        private JObject GenerateJsonForNode(Node node, ref int nodeIndex)
+        private static JObject GenerateJsonForNode(Node node, ref int nodeIndex)
         {
             JObject jsonNode = new JObject
             {
@@ -448,13 +464,13 @@ namespace LibreHardwareMonitor.Utilities
                 ["Max"] = string.Empty
             };
 
-            if (node is SensorNode)
+            if (node is SensorNode sensorNode)
             {
-                jsonNode["SensorId"] = ((SensorNode)node).Sensor.Identifier.ToString();
-                jsonNode["Type"] = ((SensorNode)node).Sensor.SensorType.ToString();
-                jsonNode["Min"] = ((SensorNode)node).Min;
-                jsonNode["Value"] = ((SensorNode)node).Value;
-                jsonNode["Max"] = ((SensorNode)node).Max;
+                jsonNode["SensorId"] = sensorNode.Sensor.Identifier.ToString();
+                jsonNode["Type"] = sensorNode.Sensor.SensorType.ToString();
+                jsonNode["Min"] = sensorNode.Min;
+                jsonNode["Value"] = sensorNode.Value;
+                jsonNode["Max"] = sensorNode.Max;
                 jsonNode["ImageURL"] = "images/transparent.png";
             }
             else if (node is HardwareNode hardwareNode)
@@ -475,38 +491,70 @@ namespace LibreHardwareMonitor.Utilities
             {
                 children.Add(GenerateJsonForNode(child, ref nodeIndex));
             }
-
             jsonNode["Children"] = children;
 
             return jsonNode;
+        }
+
+        ~HttpServer()
+        {
+            if (PlatformNotSupported)
+                return;
+
+            StopHttpListener();
+
+            _listener.Abort();
+        }
+
+        public void Quit()
+        {
+            if (PlatformNotSupported)
+                return;
+
+            StopHttpListener();
+
+            _listener.Abort();
         }
 
         private static string GetContentType(string extension)
         {
             switch (extension)
             {
-                case ".avi": return "video/x-msvideo";
-                case ".css": return "text/css";
-                case ".doc": return "application/msword";
-                case ".gif": return "image/gif";
+                case ".avi":
+                    return "video/x-msvideo";
+                case ".css":
+                    return "text/css";
+                case ".doc":
+                    return "application/msword";
+                case ".gif":
+                    return "image/gif";
                 case ".htm":
-                case ".html": return "text/html";
+                case ".html":
+                    return "text/html";
                 case ".jpg":
-                case ".jpeg": return "image/jpeg";
-                case ".js": return "application/x-javascript";
-                case ".mp3": return "audio/mpeg";
-                case ".png": return "image/png";
-                case ".pdf": return "application/pdf";
-                case ".ppt": return "application/vnd.ms-powerpoint";
-                case ".zip": return "application/zip";
-                case ".txt": return "text/plain";
-                default: return "application/octet-stream";
+                case ".jpeg":
+                    return "image/jpeg";
+                case ".js":
+                    return "application/x-javascript";
+                case ".mp3":
+                    return "audio/mpeg";
+                case ".png":
+                    return "image/png";
+                case ".pdf":
+                    return "application/pdf";
+                case ".ppt":
+                    return "application/vnd.ms-powerpoint";
+                case ".zip":
+                    return "application/zip";
+                case ".txt":
+                    return "text/plain";
+                default:
+                    return "application/octet-stream";
             }
         }
 
         private static string GetHardwareImageFile(HardwareNode hn)
         {
-
             switch (hn.Hardware.HardwareType)
             {
                 case HardwareType.Cpu:
@@ -534,12 +582,10 @@ namespace LibreHardwareMonitor.Utilities
                 default:
                     return "cpu.png";
             }
-
         }
 
         private static string GetTypeImageFile(TypeNode tn)
         {
-
             switch (tn.SensorType)
             {
                 case SensorType.Voltage:
@@ -565,27 +611,6 @@ namespace LibreHardwareMonitor.Utilities
                 default:
                     return "power.png";
             }
-
-        }
-
-        public int ListenerPort { get; set; }
-
-        ~HttpServer()
-        {
-            if (PlatformNotSupported)
-                return;
-
-            StopHttpListener();
-            _listener.Abort();
-        }
-
-        public void Quit()
-        {
-            if (PlatformNotSupported)
-                return;
-
-            StopHttpListener();
-            _listener.Abort();
         }
     }
 }

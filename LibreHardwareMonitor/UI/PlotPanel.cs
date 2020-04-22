@@ -89,7 +89,7 @@ namespace LibreHardwareMonitor.UI
             {
                 _model.StackedAxes = _stackedAxes.Value;
 
-                InvalidatePlot();
+                InvalidateData();
             };
             menu.MenuItems.Add(stackedAxesMenuItem);
 
@@ -102,7 +102,7 @@ namespace LibreHardwareMonitor.UI
             {
                 _model.TimeAxisZoom(min, max);
 
-                InvalidatePlot();
+                InvalidateData();
             }
 
             MenuItem[] timeAxisMenuItems =
@@ -152,7 +152,7 @@ namespace LibreHardwareMonitor.UI
                 {
                     _model.AutoScaleAllYAxes();
 
-                    InvalidatePlot();
+                    InvalidateData();
                 })
             };
 
@@ -207,7 +207,7 @@ namespace LibreHardwareMonitor.UI
                 line.Color = colors[sensor].ToOxyColor();
             });
 
-            InvalidatePlot();
+            InvalidateData();
         }
 
         private DataPoint CreateDataPoint(SensorType type, SensorValue value)
@@ -226,7 +226,7 @@ namespace LibreHardwareMonitor.UI
             return new DataPoint((_now - value.Time).TotalSeconds, displayedValue);
         }
 
-        public void InvalidatePlot()
+        public void InvalidateData()
         {
             _now = DateTime.UtcNow;
 
