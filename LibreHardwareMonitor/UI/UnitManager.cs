@@ -86,6 +86,7 @@ namespace LibreHardwareMonitor.UI
         public float ScaleThroughput(float throughput)
         {
             float result;
+
             //switch (sensor.Name)
             {
                 //case "Connection Speed": ???
@@ -174,12 +175,12 @@ namespace LibreHardwareMonitor.UI
             return unit;
         }
 
-        public string GetFormat(SensorType sensorType)
+        public string GetFormat(SensorType sensorType, int index = 0)
         {
             switch (sensorType)
             {
                 case SensorType.Fan:
-                    return "{0:F0}";
+                    return "{" + index + ":F0}";
                 case SensorType.Clock:
                 case SensorType.Load:
                 case SensorType.Flow:
@@ -191,16 +192,16 @@ namespace LibreHardwareMonitor.UI
                 case SensorType.Throughput:
                 case SensorType.SmallData:
                 case SensorType.Temperature:
-                    return "{0:F1}";
+                    return "{" + index + ":F1}";
                 case SensorType.Voltage:
                 case SensorType.Factor:
-                    return "{0:F3}";
+                    return "{" + index + ":F3}";
             }
 
-            return "{0:F1}";
+            return "{" + index + ":F1}";
         }
 
-        public string GetFormatWithUnit(SensorType sensorType, float? value = null)
+        public string GetFormatWithUnit(SensorType sensorType, float? value = null, int index = 0)
         {
             return $"{GetFormat(sensorType)} {GetUnit(sensorType, value)}";
         }

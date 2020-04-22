@@ -95,6 +95,8 @@ namespace LibreHardwareMonitor.Rtss
                     return "-";
                 }
 
+                string unit = _unitManager.GetUnit(item.SensorType, v);
+
                 if (item.SensorType == SensorType.Temperature)
                 {
                     v = _unitManager.LocalizeTemperature(v);
@@ -104,14 +106,9 @@ namespace LibreHardwareMonitor.Rtss
                     v = _unitManager.ScaleThroughput(v);
                 }
 
-                return string.Format(_unitManager.GetFormat(item.SensorType), v);
-            }
+                string formatted = string.Format(_unitManager.GetFormat(item.SensorType), v);
 
-            string FormatUnit(RtssDisplayItem item)
-            {
-                float? v = item.Value();
-
-                return _unitManager.GetUnit(item.SensorType, v);
+                return $"<A0>{formatted}<A><A1><S2> {unit}<S><A>";
             }
 
             string result = RtssTags;
@@ -143,8 +140,7 @@ namespace LibreHardwareMonitor.Rtss
                         : subgroup.OrderBy(i => i.HardwareName);
 
                     var items = displayItems
-                        .Select(item =>
-                            $"<C={item.Color}>{FormatName(item)}:\t<A0>{FormatValue(item)}<A><A1><S2> {FormatUnit(item)}<S><A><C>");
+                        .Select(item => $"<C={item.Color}>{FormatName(item)}:\t{FormatValue(item)}<C>");
 
                     group += string.Join(RtssNewLine, items);
 
@@ -177,8 +173,7 @@ namespace LibreHardwareMonitor.Rtss
                         : subgroup.OrderBy(i => i.SensorType);
 
                     var items = displayItems
-                        .Select(item =>
-                            $"<C={item.Color}>{FormatName(item)}:\t<A0>{FormatValue(item)}<A><A1><S2> {FormatUnit(item)}<S><A><C>");
+                        .Select(item => $"<C={item.Color}>{FormatName(item)}:\t{FormatValue(item)}<C>");
 
                     group += string.Join(RtssNewLine, items);
 

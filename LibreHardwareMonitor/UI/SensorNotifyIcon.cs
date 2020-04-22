@@ -306,7 +306,7 @@ namespace LibreHardwareMonitor.UI
                 value = _unitManager.ScaleThroughput(value);
             }
 
-            string formattedValue = string.Format("\n{0}: " + format, Sensor.Name, value);
+            string formattedValue = $"\n{Sensor.Name}: {string.Format(format, value)}" ;
 
             string hardwareName = Sensor.Hardware.Name;
 

@@ -344,9 +344,9 @@ namespace LibreHardwareMonitor.UI
         {
             string typeName = sensorType.ToString();
 
-            string format = "{0}\nTime: {2:hh\\:mm\\:ss\\.fff}\n" + typeName + ": {4:.##}";
-
-            format += " " + _unitManager.GetUnit(sensorType);
+            string format = "{0}\nTime: {2:hh\\:mm\\:ss\\.fff}\n"
+                            + typeName + ": " + _unitManager.GetFormat(sensorType, 4)
+                            + " " + _unitManager.GetUnit(sensorType);
 
             return format;
         }
