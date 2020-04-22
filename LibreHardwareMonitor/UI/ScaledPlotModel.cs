@@ -320,7 +320,7 @@ namespace LibreHardwareMonitor.UI
 
                 configure?.Invoke(sensor, series);
 
-                series.TrackerFormatString = GetTrackerFormat(sensor);
+                series.TrackerFormatString = GetTrackerFormat(sensor.SensorType);
 
                 Series.Add(series);
 
@@ -340,13 +340,13 @@ namespace LibreHardwareMonitor.UI
             AutoScaleAllYAxes();
         }
 
-        private string GetTrackerFormat(ISensor sensor)
+        private string GetTrackerFormat(SensorType sensorType)
         {
-            string typeName = sensor.SensorType.ToString();
+            string typeName = sensorType.ToString();
 
             string format = "{0}\nTime: {2:hh\\:mm\\:ss\\.fff}\n" + typeName + ": {4:.##}";
 
-            format += " " + _unitManager.GetUnit(sensor.SensorType);
+            format += " " + _unitManager.GetUnit(sensorType);
 
             return format;
         }
@@ -355,19 +355,33 @@ namespace LibreHardwareMonitor.UI
 
         public void UpdateAxes()
         {
+            bool temperatureUnitChanged = false;
+
+            if (_prevTemperatureUnit != _unitManager.TemperatureUnit)
+            {
+                temperatureUnitChanged = true;
+                _prevTemperatureUnit = _unitManager.TemperatureUnit;
+            }
+
             foreach (KeyValuePair<SensorType, LinearAxis> pair in _axes)
             {
                 LinearAxis axis = pair.Value;
                 SensorType type = pair.Key;
 
-                if (type == SensorType.Temperature && _prevTemperatureUnit != _unitManager.TemperatureUnit)
+                if (type == SensorType.Temperature && temperatureUnitChanged)
                 {
                     if (_showValueAxesLabels)
                     {
                         axis.Unit = _unitManager.GetUnit(SensorType.Temperature);
-                    }
 
-                    _prevTemperatureUnit = _unitManager.TemperatureUnit;
+                        foreach (LineSeries series in Series.OfType<LineSeries>())
+                        {
+                            if (series.YAxisKey == axis.Key)
+                            {
+                                series.TrackerFormatString = GetTrackerFormat(type);
+                            }
+                        }
+                    }
                 }
 
                 if (_stackedAxes)
