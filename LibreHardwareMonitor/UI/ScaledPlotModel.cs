@@ -373,13 +373,13 @@ namespace LibreHardwareMonitor.UI
                     if (_showValueAxesLabels)
                     {
                         axis.Unit = _unitManager.GetUnit(SensorType.Temperature);
+                    }
 
-                        foreach (LineSeries series in Series.OfType<LineSeries>())
+                    foreach (LineSeries series in Series.OfType<LineSeries>())
+                    {
+                        if (series.YAxisKey == axis.Key)
                         {
-                            if (series.YAxisKey == axis.Key)
-                            {
-                                series.TrackerFormatString = GetTrackerFormat(type);
-                            }
+                            series.TrackerFormatString = GetTrackerFormat(type);
                         }
                     }
                 }
