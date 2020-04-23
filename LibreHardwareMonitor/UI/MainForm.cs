@@ -1222,7 +1222,7 @@ namespace LibreHardwareMonitor.UI
             _selectionDragging = false;
         }
 
-        private void ServerPortMenuItem_Click(object sender, EventArgs e)
+        private void ServerOptionsMenuItem_Click(object sender, EventArgs e)
         {
             ShowDialogAndDispose(new PortForm(_server));
         }

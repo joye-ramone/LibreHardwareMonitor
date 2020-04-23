@@ -43,6 +43,9 @@ namespace LibreHardwareMonitor.UI
                     txtEnableRtssServiceHotKey.Text = ToHumanReadable(modifiers, code);
                 }
             }
+
+            ShowHideHotKeyCheckedChanged(this, null);
+            EnableRtssServiceHotKeyCheckedChanged(this, null);
         }
 
         private void GlobalHotkeyFormClosed(object sender, FormClosedEventArgs e)

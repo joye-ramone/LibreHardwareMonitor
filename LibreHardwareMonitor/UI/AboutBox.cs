@@ -18,7 +18,7 @@ namespace LibreHardwareMonitor.UI
 
             Font = SystemFonts.MessageBoxFont;
 
-            version.Text = "Version " + Application.ProductVersion;
+            version.Text = "Based on Version " + Application.ProductVersion;
 
             projectLinkLabel.Links.Remove(projectLinkLabel.Links[0]);
             projectLinkLabel.Links.Add(0, projectLinkLabel.Text.Length, "https://github.com/LibreHardwareMonitor/LibreHardwareMonitor");

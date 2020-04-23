@@ -116,7 +116,7 @@ namespace LibreHardwareMonitor.UI
             this.externalMenuItemSeparator = new System.Windows.Forms.MenuItem();
             this.webMenuItem = new System.Windows.Forms.MenuItem();
             this.runWebServerMenuItem = new System.Windows.Forms.MenuItem();
-            this.serverPortMenuItem = new System.Windows.Forms.MenuItem();
+            this.serverOptionsMenuItem = new System.Windows.Forms.MenuItem();
             this.rtssMenuItem = new System.Windows.Forms.MenuItem();
             this.rtssMenuItemRun = new System.Windows.Forms.MenuItem();
             this.rtssMenuItemOptions = new System.Windows.Forms.MenuItem();
@@ -480,7 +480,7 @@ namespace LibreHardwareMonitor.UI
             // logSensorsMenuItem
             // 
             this.logSensorsMenuItem.Index = 9;
-            this.logSensorsMenuItem.Text = "Log Sensors";
+            this.logSensorsMenuItem.Text = "Log Sensor Values";
             // 
             // loggingIntervalMenuItem
             // 
@@ -672,7 +672,7 @@ namespace LibreHardwareMonitor.UI
             this.webMenuItem.Index = 13;
             this.webMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.runWebServerMenuItem,
-            this.serverPortMenuItem});
+            this.serverOptionsMenuItem});
             this.webMenuItem.Text = "Remote Web Server";
             // 
             // runWebServerMenuItem
@@ -680,11 +680,11 @@ namespace LibreHardwareMonitor.UI
             this.runWebServerMenuItem.Index = 0;
             this.runWebServerMenuItem.Text = "Run";
             // 
-            // serverPortMenuItem
+            // serverOptionsMenuItem
             // 
-            this.serverPortMenuItem.Index = 1;
-            this.serverPortMenuItem.Text = "Port";
-            this.serverPortMenuItem.Click += new System.EventHandler(this.ServerPortMenuItem_Click);
+            this.serverOptionsMenuItem.Index = 1;
+            this.serverOptionsMenuItem.Text = "Options";
+            this.serverOptionsMenuItem.Click += new System.EventHandler(this.ServerOptionsMenuItem_Click);
             // 
             // rtssMenuItem
             // 
@@ -862,7 +862,7 @@ namespace LibreHardwareMonitor.UI
         private System.Windows.Forms.MenuItem plotRightMenuItem;
         private System.Windows.Forms.MenuItem webMenuItem;
         private System.Windows.Forms.MenuItem runWebServerMenuItem;
-        private System.Windows.Forms.MenuItem serverPortMenuItem;
+        private System.Windows.Forms.MenuItem serverOptionsMenuItem;
         private System.Windows.Forms.MenuItem menuItem5;
         private System.Windows.Forms.MenuItem mainboardMenuItem;
         private System.Windows.Forms.MenuItem cpuMenuItem;
