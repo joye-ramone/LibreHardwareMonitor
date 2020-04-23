@@ -46,7 +46,7 @@ jobs:
       uses: actions/upload-artifact@v1.0.0
       with:
         # Artifact name
-        name: release_{{ github.run_number }}
+        name: release_${{ github.run_number }}
         # Directory containing files to upload
         path: .\LibreHardwareMonitor\bin\x64\Release\
     
