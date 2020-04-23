@@ -20,12 +20,12 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it      
     - uses: actions/checkout@v2
 
     - name: run a one-line script
       shell: cmd
-      run: echo Starting
+      run: echo starting...
       
     - name: nuget setup
       uses: warrenbuckley/Setup-Nuget@v1      
@@ -41,14 +41,12 @@ jobs:
       shell: cmd
       run: |
         msbuild LibreHardwareMonitor.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64
-        
-        7z a -t7z -m0=LZMA2:d=96m:fb=273 -mx=9 -mmt=2 .\release.7z .\LibreHardwareMonitor\bin\x64\Release
-        
+               
     - name: upload artifact
       uses: actions/upload-artifact@v1.0.0
       with:
         # Artifact name
-        name: release.7z
+        name: release
         # Directory containing files to upload
-        path: .\release.7z
+        path: .\LibreHardwareMonitor\bin\x64\Release\
     
