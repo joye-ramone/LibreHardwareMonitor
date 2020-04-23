@@ -14,33 +14,6 @@ namespace LibreHardwareMonitor.UI
 {
     public partial class ParameterForm : Form
     {
-        private BindingList<ParameterRow> _parameterRows;
-
-        public string Caption
-        {
-            get { return captionLabel.Text; }
-            set { captionLabel.Text = value; }
-        }
-
-        public ParameterForm()
-        {
-            InitializeComponent();
-
-            CancelButton = cancelButton;
-        }
-
-        public void SetParameters(IReadOnlyList<IParameter> value)
-        {
-            _parameterRows = new BindingList<ParameterRow>();
-
-            foreach (IParameter parameter in value)
-            {
-                _parameterRows.Add(new ParameterRow(parameter));
-            }
-
-            bindingSource.DataSource = _parameterRows;
-        }
-
         private class ParameterRow : INotifyPropertyChanged
         {
             public readonly IParameter Parameter;
@@ -96,6 +69,33 @@ namespace LibreHardwareMonitor.UI
                     NotifyPropertyChanged(nameof(Value));
                 }
             }
+        }
+
+        private BindingList<ParameterRow> _parameterRows;
+
+        public string Caption
+        {
+            get { return captionLabel.Text; }
+            set { captionLabel.Text = value; }
+        }
+
+        public ParameterForm()
+        {
+            InitializeComponent();
+
+            CancelButton = cancelButton;
+        }
+
+        public void SetParameters(IReadOnlyList<IParameter> value)
+        {
+            _parameterRows = new BindingList<ParameterRow>();
+
+            foreach (IParameter parameter in value)
+            {
+                _parameterRows.Add(new ParameterRow(parameter));
+            }
+
+            bindingSource.DataSource = _parameterRows;
         }
 
         private void DataGridView_RowEnter(object sender, DataGridViewCellEventArgs e)

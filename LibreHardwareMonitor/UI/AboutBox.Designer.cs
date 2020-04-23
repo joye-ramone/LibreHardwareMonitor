@@ -107,7 +107,7 @@ namespace LibreHardwareMonitor.UI
             this.projectLinkLabel.TabIndex = 6;
             this.projectLinkLabel.TabStop = true;
             this.projectLinkLabel.Text = "Project Website";
-            this.projectLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabel_LinkClicked);
+            this.projectLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkClicked);
             //
             // flowLayoutPanel1
             //
@@ -129,7 +129,7 @@ namespace LibreHardwareMonitor.UI
             this.licenseLinkLabel.TabIndex = 9;
             this.licenseLinkLabel.TabStop = true;
             this.licenseLinkLabel.Text = "Licensing Information";
-            this.licenseLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabel_LinkClicked);
+            this.licenseLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkClicked);
             //
             // AboutBox
             //

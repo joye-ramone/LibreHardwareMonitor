@@ -7,7 +7,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Aga.Controls.Tree;
 
@@ -37,11 +36,6 @@ namespace LibreHardwareMonitor.UI
             }
             return new TreePath(stack.ToArray());
         }
-
-        //public IEnumerable<Node> Nodes
-        //{
-        //    get { return _root.Nodes; }
-        //}
 
         private Node GetNode(TreePath treePath)
         {

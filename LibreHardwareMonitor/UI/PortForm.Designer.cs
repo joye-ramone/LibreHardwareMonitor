@@ -54,7 +54,7 @@ namespace LibreHardwareMonitor.UI
             this.portOKButton.TabIndex = 0;
             this.portOKButton.Text = "OK";
             this.portOKButton.UseVisualStyleBackColor = true;
-            this.portOKButton.Click += new System.EventHandler(this.PortOKButton_Click);
+            this.portOKButton.Click += new System.EventHandler(this.PortOKButtonClick);
             // 
             // portCancelButton
             // 
@@ -65,7 +65,7 @@ namespace LibreHardwareMonitor.UI
             this.portCancelButton.TabIndex = 1;
             this.portCancelButton.Text = "Cancel";
             this.portCancelButton.UseVisualStyleBackColor = true;
-            this.portCancelButton.Click += new System.EventHandler(this.PortCancelButton_Click);
+            this.portCancelButton.Click += new System.EventHandler(this.PortCancelButtonClick);
             // 
             // label1
             // 
@@ -114,7 +114,7 @@ namespace LibreHardwareMonitor.UI
             this.webServerLinkLabel.TabIndex = 7;
             this.webServerLinkLabel.TabStop = true;
             this.webServerLinkLabel.Text = "linkLabel1";
-            this.webServerLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.WebServerLinkLabel_LinkClicked);
+            this.webServerLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.WebServerLinkLabelLinkClicked);
             // 
             // portNumericUpDn
             // 
@@ -137,7 +137,7 @@ namespace LibreHardwareMonitor.UI
             0,
             0,
             0});
-            this.portNumericUpDn.ValueChanged += new System.EventHandler(this.PortNumericUpDn_ValueChanged);
+            this.portNumericUpDn.ValueChanged += new System.EventHandler(this.PortNumericUpDnValueChanged);
             // 
             // label5
             // 
@@ -171,7 +171,7 @@ namespace LibreHardwareMonitor.UI
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Set Port";
-            this.Load += new System.EventHandler(this.PortForm_Load);
+            this.Load += new System.EventHandler(this.PortFormLoad);
             ((System.ComponentModel.ISupportInitialize)(this.portNumericUpDn)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

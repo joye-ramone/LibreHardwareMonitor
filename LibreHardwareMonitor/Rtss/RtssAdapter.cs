@@ -29,12 +29,6 @@ namespace LibreHardwareMonitor.Rtss
         private const string RtssNewLine = "\n";
         private const string RtssNewLine2 = "\n\n";
 
-        public string RtssServiceLocation
-        {
-            get { return _rtssService.RtssServiceLocation; }
-            set { _rtssService.RtssServiceLocation = value; }
-        }
-
         public bool IsServiceRunning
         {
             get => _rtssService.IsRunning;
@@ -48,6 +42,11 @@ namespace LibreHardwareMonitor.Rtss
         public bool IsActive
         {
             get => _osd != null;
+        }
+
+        public RtssService Service
+        {
+            get => _rtssService;
         }
 
         private bool _groupByType;

@@ -117,7 +117,15 @@ namespace LibreHardwareMonitor.UI
             {
                 Font = SystemFonts.MessageBoxFont, Dock = DockStyle.Fill
             };
-            _plotForm = new Form { FormBorderStyle = FormBorderStyle.SizableToolWindow, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual };
+            _plotForm = new Form
+            {
+                FormBorderStyle = FormBorderStyle.Sizable,
+                MinimizeBox = false,
+                MaximizeBox = false,
+                ShowInTaskbar = false,
+                StartPosition = FormStartPosition.Manual,
+                Icon = Icon
+            };
 
             AddOwnedForm(_plotForm);
 

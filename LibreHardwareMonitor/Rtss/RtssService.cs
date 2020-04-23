@@ -39,7 +39,7 @@ namespace LibreHardwareMonitor.Rtss
             _rtssServiceLocation = _settings.GetValue("RtssService.RtssServiceLocation", FindDefaultLocation());
         }
 
-        private static string FindDefaultLocation()
+        public string FindDefaultLocation()
         {
             // check registry
 
