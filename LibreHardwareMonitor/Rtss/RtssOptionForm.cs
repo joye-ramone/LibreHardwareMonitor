@@ -26,7 +26,11 @@ namespace LibreHardwareMonitor.Rtss
 
             txtRtssLocation.Text = _originalServiceLocation = _rtssAdapter.Service.RtssServiceLocation;
 
-            chkGroupByType.Checked = _rtssAdapter.GroupByType;
+            radioButton1.Checked = _rtssAdapter.GroupByType == GroupByKind.None;
+            radioButton2.Checked = _rtssAdapter.GroupByType == GroupByKind.Type;
+            radioButton3.Checked = _rtssAdapter.GroupByType == GroupByKind.Hardware;
+
+            chkAddFpt.Checked = _rtssAdapter.AddFpsDetails;
             chkSeparateGroups.Checked = _rtssAdapter.SeparateGroups;
             chkUseSensorNameAsKey.Checked = _rtssAdapter.UseSensorNameAsKey;
 
@@ -72,7 +76,14 @@ namespace LibreHardwareMonitor.Rtss
             {
                 _rtssAdapter.Service.RtssServiceLocation = txtRtssLocation.Text;
 
-                _rtssAdapter.GroupByType = chkGroupByType.Checked;
+                if (radioButton1.Checked)
+                    _rtssAdapter.GroupByType = GroupByKind.None;
+                else if (radioButton2.Checked)
+                    _rtssAdapter.GroupByType = GroupByKind.Type;
+                else if (radioButton3.Checked)
+                    _rtssAdapter.GroupByType = GroupByKind.Hardware;
+
+                _rtssAdapter.AddFpsDetails = chkAddFpt.Checked;
                 _rtssAdapter.SeparateGroups = chkSeparateGroups.Checked;
                 _rtssAdapter.UseSensorNameAsKey = chkUseSensorNameAsKey.Checked;
             }

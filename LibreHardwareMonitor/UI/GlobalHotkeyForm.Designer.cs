@@ -34,6 +34,8 @@
             this.chkShowHideHotKey = new System.Windows.Forms.CheckBox();
             this.chkEnableRtssServiceHotKey = new System.Windows.Forms.CheckBox();
             this.btnCancel = new System.Windows.Forms.Button();
+            this.btnClearShowHideHotKey = new System.Windows.Forms.Button();
+            this.btnClearEnableRtssServiceHotKey = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnOk
@@ -70,9 +72,9 @@
             this.chkShowHideHotKey.AutoSize = true;
             this.chkShowHideHotKey.Location = new System.Drawing.Point(21, 26);
             this.chkShowHideHotKey.Name = "chkShowHideHotKey";
-            this.chkShowHideHotKey.Size = new System.Drawing.Size(110, 17);
+            this.chkShowHideHotKey.Size = new System.Drawing.Size(118, 17);
             this.chkShowHideHotKey.TabIndex = 8;
-            this.chkShowHideHotKey.Text = "ShowHideHotKey";
+            this.chkShowHideHotKey.Text = "Show/Hide HotKey";
             this.chkShowHideHotKey.UseVisualStyleBackColor = true;
             this.chkShowHideHotKey.CheckedChanged += new System.EventHandler(this.ShowHideHotKeyCheckedChanged);
             // 
@@ -81,9 +83,9 @@
             this.chkEnableRtssServiceHotKey.AutoSize = true;
             this.chkEnableRtssServiceHotKey.Location = new System.Drawing.Point(21, 63);
             this.chkEnableRtssServiceHotKey.Name = "chkEnableRtssServiceHotKey";
-            this.chkEnableRtssServiceHotKey.Size = new System.Drawing.Size(151, 17);
+            this.chkEnableRtssServiceHotKey.Size = new System.Drawing.Size(157, 17);
             this.chkEnableRtssServiceHotKey.TabIndex = 9;
-            this.chkEnableRtssServiceHotKey.Text = "EnableRtssServiceHotKey";
+            this.chkEnableRtssServiceHotKey.Text = "Enable RtssService HotKey";
             this.chkEnableRtssServiceHotKey.UseVisualStyleBackColor = true;
             this.chkEnableRtssServiceHotKey.CheckedChanged += new System.EventHandler(this.EnableRtssServiceHotKeyCheckedChanged);
             // 
@@ -97,6 +99,26 @@
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             // 
+            // btnClearShowHideHotKey
+            // 
+            this.btnClearShowHideHotKey.Location = new System.Drawing.Point(340, 22);
+            this.btnClearShowHideHotKey.Name = "btnClearShowHideHotKey";
+            this.btnClearShowHideHotKey.Size = new System.Drawing.Size(23, 23);
+            this.btnClearShowHideHotKey.TabIndex = 11;
+            this.btnClearShowHideHotKey.Text = "X";
+            this.btnClearShowHideHotKey.UseVisualStyleBackColor = true;
+            this.btnClearShowHideHotKey.Click += new System.EventHandler(this.ClearShowHideHotKeyClick);
+            // 
+            // btnClearEnableRtssServiceHotKey
+            // 
+            this.btnClearEnableRtssServiceHotKey.Location = new System.Drawing.Point(340, 59);
+            this.btnClearEnableRtssServiceHotKey.Name = "btnClearEnableRtssServiceHotKey";
+            this.btnClearEnableRtssServiceHotKey.Size = new System.Drawing.Size(23, 23);
+            this.btnClearEnableRtssServiceHotKey.TabIndex = 12;
+            this.btnClearEnableRtssServiceHotKey.Text = "X";
+            this.btnClearEnableRtssServiceHotKey.UseVisualStyleBackColor = true;
+            this.btnClearEnableRtssServiceHotKey.Click += new System.EventHandler(this.ClearEnableRtssServiceHotKeyClick);
+            // 
             // GlobalHotkeyForm
             // 
             this.AcceptButton = this.btnOk;
@@ -104,6 +126,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(376, 152);
+            this.Controls.Add(this.btnClearEnableRtssServiceHotKey);
+            this.Controls.Add(this.btnClearShowHideHotKey);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.chkEnableRtssServiceHotKey);
             this.Controls.Add(this.chkShowHideHotKey);
@@ -132,5 +156,7 @@
         private System.Windows.Forms.CheckBox chkShowHideHotKey;
         private System.Windows.Forms.CheckBox chkEnableRtssServiceHotKey;
         private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.Button btnClearShowHideHotKey;
+        private System.Windows.Forms.Button btnClearEnableRtssServiceHotKey;
     }
 }

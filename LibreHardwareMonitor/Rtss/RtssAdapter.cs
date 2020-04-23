@@ -23,6 +23,13 @@ namespace LibreHardwareMonitor.Rtss
         public Func<float?> Value { get; set; }
     }
 
+    public enum GroupByKind
+    {
+        None,
+        Hardware,
+        Type
+    }
+
     public sealed class RtssAdapter
     {
         private const string RtssTags = "<P=0,0><A0=-6><A1=4><C0=FFA0A0><C1=FF00A0><C2=FFFFFF><S0=-50><S1=-75><S2=50>";
@@ -49,27 +56,15 @@ namespace LibreHardwareMonitor.Rtss
             get => _rtssService;
         }
 
-        private bool _groupByType;
+        private GroupByKind _groupByType;
 
-        public bool GroupByType
+        public GroupByKind GroupByType
         {
             get { return _groupByType; }
             set
             {
                 _groupByType = value;
-                _settings.SetValue("RtssAdapter.GroupByType", value);
-            }
-        }
-
-        private bool _separateGroups;
-
-        public bool SeparateGroups
-        {
-            get { return _separateGroups; }
-            set
-            {
-                _separateGroups = value;
-                _settings.SetValue("RtssAdapter.SeparateGroups", value);
+                _settings.SetValue("RtssAdapter.GroupByType", (int)value);
             }
         }
 
@@ -82,6 +77,18 @@ namespace LibreHardwareMonitor.Rtss
             {
                 _useSensorNameAsKey = value;
                 _settings.SetValue("RtssAdapter.UseSensorNameAsKey", value);
+            }
+        }
+
+        private bool _separateGroups;
+
+        public bool SeparateGroups
+        {
+            get { return _separateGroups; }
+            set
+            {
+                _separateGroups = value;
+                _settings.SetValue("RtssAdapter.SeparateGroups", value);
             }
         }
 
@@ -116,7 +123,7 @@ namespace LibreHardwareMonitor.Rtss
             _unitManager = unitManager ?? throw new ArgumentNullException(nameof(unitManager));
             _rtssService = new RtssService(_settings);
 
-            _groupByType = _settings.GetValue("RtssAdapter.GroupByType", false);
+            _groupByType = (GroupByKind)_settings.GetValue("RtssAdapter.GroupByType", (int)GroupByKind.None);
             _separateGroups = _settings.GetValue("RtssAdapter.SeparateGroups", true);
             _useSensorNameAsKey = _settings.GetValue("RtssAdapter.UseSensorNameAsKey", false);
             _addFpsDetails = _settings.GetValue("RtssAdapter.AddFpsDetails", true);
@@ -204,7 +211,7 @@ namespace LibreHardwareMonitor.Rtss
             //add order by sensor types in both cases
             //hardware should be ordered in same way as in tree
 
-            if (GroupByType)
+            if (GroupByType == GroupByKind.Type)
             {
                 // group items by type
 
@@ -237,7 +244,7 @@ namespace LibreHardwareMonitor.Rtss
 
                 result = string.Join(SeparateGroups ? RtssNewLine2 : RtssNewLine, d);
             }
-            else
+            else if (GroupByType == GroupByKind.Hardware)
             {
                 // group items by hardware
 
@@ -265,6 +272,29 @@ namespace LibreHardwareMonitor.Rtss
 
                     group += string.Join(RtssNewLine, items);
 
+                    return group;
+                });
+
+                result = string.Join(SeparateGroups ? RtssNewLine2 : RtssNewLine, d);
+            }
+            else
+            {
+                // no grouping
+
+                string FormatName(RtssDisplayItem item)
+                {
+                    if (UseSensorNameAsKey)
+                        return $"{item.SensorName}<S0> ({item.SensorType})<S>";
+                    return $"{item.SensorType}<S0> ({item.SensorName})<S>";
+                }
+
+                IEnumerable<RtssDisplayItem> displayItems = UseSensorNameAsKey
+                    ? _displayItems.OrderBy(i => i.SensorName)
+                    : _displayItems.OrderBy(i => i.SensorType);
+
+                var d = displayItems.Select(item =>
+                {
+                    string group = $"<C={item.Color}>{FormatName(item)}:\t{FormatValue(item)}<C>";
                     return group;
                 });
 

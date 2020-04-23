@@ -77,6 +77,18 @@ namespace LibreHardwareMonitor.UI
         {
             txtEnableRtssServiceHotKey.Enabled = chkEnableRtssServiceHotKey.Checked;
         }
+        
+        private void ClearShowHideHotKeyClick(object sender, EventArgs e)
+        {
+            txtShowHideHotKey.Tag = Keys.None;
+            txtShowHideHotKey.Text = ToHumanReadable(Keys.None, Keys.None);
+        }
+
+        private void ClearEnableRtssServiceHotKeyClick(object sender, EventArgs e)
+        {
+            txtEnableRtssServiceHotKey.Tag = Keys.None;
+            txtEnableRtssServiceHotKey.Text = ToHumanReadable(Keys.None, Keys.None);
+        }
 
         private void GlobalHotkeyFormKeyDown(object sender, KeyEventArgs e)
         {

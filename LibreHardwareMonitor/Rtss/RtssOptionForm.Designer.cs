@@ -32,20 +32,27 @@
             System.Windows.Forms.Label label1;
             System.Windows.Forms.Label label2;
             System.Windows.Forms.Label label3;
+            System.Windows.Forms.Label label4;
+            System.Windows.Forms.Label label5;
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.statusTimer = new System.Windows.Forms.Timer(this.components);
             this.btnDetectPath = new System.Windows.Forms.Button();
-            this.chkGroupByType = new System.Windows.Forms.CheckBox();
+            this.chkAddFpt = new System.Windows.Forms.CheckBox();
             this.txtRtssLocation = new System.Windows.Forms.TextBox();
             this.chkSeparateGroups = new System.Windows.Forms.CheckBox();
             this.chkUseSensorNameAsKey = new System.Windows.Forms.CheckBox();
             this.lblAvailableState = new System.Windows.Forms.Label();
             this.lblRunningState = new System.Windows.Forms.Label();
             this.btnTryRun = new System.Windows.Forms.Button();
+            this.radioButton1 = new System.Windows.Forms.RadioButton();
+            this.radioButton2 = new System.Windows.Forms.RadioButton();
+            this.radioButton3 = new System.Windows.Forms.RadioButton();
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
             label3 = new System.Windows.Forms.Label();
+            label4 = new System.Windows.Forms.Label();
+            label5 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -109,15 +116,15 @@
             this.btnDetectPath.UseVisualStyleBackColor = true;
             this.btnDetectPath.Click += new System.EventHandler(this.DetectPathClick);
             // 
-            // chkGroupByType
+            // chkAddFpt
             // 
-            this.chkGroupByType.AutoSize = true;
-            this.chkGroupByType.Location = new System.Drawing.Point(12, 116);
-            this.chkGroupByType.Name = "chkGroupByType";
-            this.chkGroupByType.Size = new System.Drawing.Size(97, 17);
-            this.chkGroupByType.TabIndex = 6;
-            this.chkGroupByType.Text = "Group By Type";
-            this.chkGroupByType.UseVisualStyleBackColor = true;
+            this.chkAddFpt.AutoSize = true;
+            this.chkAddFpt.Location = new System.Drawing.Point(12, 132);
+            this.chkAddFpt.Name = "chkAddFpt";
+            this.chkAddFpt.Size = new System.Drawing.Size(116, 17);
+            this.chkAddFpt.TabIndex = 6;
+            this.chkAddFpt.Text = "Show in-game FPS";
+            this.chkAddFpt.UseVisualStyleBackColor = true;
             // 
             // txtRtssLocation
             // 
@@ -131,7 +138,7 @@
             // chkSeparateGroups
             // 
             this.chkSeparateGroups.AutoSize = true;
-            this.chkSeparateGroups.Location = new System.Drawing.Point(12, 139);
+            this.chkSeparateGroups.Location = new System.Drawing.Point(12, 155);
             this.chkSeparateGroups.Name = "chkSeparateGroups";
             this.chkSeparateGroups.Size = new System.Drawing.Size(106, 17);
             this.chkSeparateGroups.TabIndex = 8;
@@ -141,7 +148,7 @@
             // chkUseSensorNameAsKey
             // 
             this.chkUseSensorNameAsKey.AutoSize = true;
-            this.chkUseSensorNameAsKey.Location = new System.Drawing.Point(12, 162);
+            this.chkUseSensorNameAsKey.Location = new System.Drawing.Point(12, 178);
             this.chkUseSensorNameAsKey.Name = "chkUseSensorNameAsKey";
             this.chkUseSensorNameAsKey.Size = new System.Drawing.Size(148, 17);
             this.chkUseSensorNameAsKey.TabIndex = 9;
@@ -178,6 +185,57 @@
             this.btnTryRun.UseVisualStyleBackColor = true;
             this.btnTryRun.Click += new System.EventHandler(this.TryRunClick);
             // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new System.Drawing.Point(203, 111);
+            label4.Name = "label4";
+            label4.Size = new System.Drawing.Size(92, 13);
+            label4.TabIndex = 15;
+            label4.Text = "Group sensors by:";
+            // 
+            // radioButton1
+            // 
+            this.radioButton1.AutoSize = true;
+            this.radioButton1.Location = new System.Drawing.Point(207, 132);
+            this.radioButton1.Name = "radioButton1";
+            this.radioButton1.Size = new System.Drawing.Size(51, 17);
+            this.radioButton1.TabIndex = 16;
+            this.radioButton1.TabStop = true;
+            this.radioButton1.Text = "None";
+            this.radioButton1.UseVisualStyleBackColor = true;
+            // 
+            // radioButton2
+            // 
+            this.radioButton2.AutoSize = true;
+            this.radioButton2.Location = new System.Drawing.Point(207, 155);
+            this.radioButton2.Name = "radioButton2";
+            this.radioButton2.Size = new System.Drawing.Size(49, 17);
+            this.radioButton2.TabIndex = 17;
+            this.radioButton2.TabStop = true;
+            this.radioButton2.Text = "Type";
+            this.radioButton2.UseVisualStyleBackColor = true;
+            // 
+            // radioButton3
+            // 
+            this.radioButton3.AutoSize = true;
+            this.radioButton3.Location = new System.Drawing.Point(207, 178);
+            this.radioButton3.Name = "radioButton3";
+            this.radioButton3.Size = new System.Drawing.Size(71, 17);
+            this.radioButton3.TabIndex = 18;
+            this.radioButton3.TabStop = true;
+            this.radioButton3.Text = "Hardware";
+            this.radioButton3.UseVisualStyleBackColor = true;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new System.Drawing.Point(10, 111);
+            label5.Name = "label5";
+            label5.Size = new System.Drawing.Size(46, 13);
+            label5.TabIndex = 19;
+            label5.Text = "Options:";
+            // 
             // RtssOptionForm
             // 
             this.AcceptButton = this.btnOk;
@@ -185,6 +243,11 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(497, 211);
+            this.Controls.Add(label5);
+            this.Controls.Add(this.radioButton3);
+            this.Controls.Add(this.radioButton2);
+            this.Controls.Add(this.radioButton1);
+            this.Controls.Add(label4);
             this.Controls.Add(this.btnTryRun);
             this.Controls.Add(this.lblRunningState);
             this.Controls.Add(this.lblAvailableState);
@@ -193,7 +256,7 @@
             this.Controls.Add(this.chkUseSensorNameAsKey);
             this.Controls.Add(this.chkSeparateGroups);
             this.Controls.Add(this.txtRtssLocation);
-            this.Controls.Add(this.chkGroupByType);
+            this.Controls.Add(this.chkAddFpt);
             this.Controls.Add(label1);
             this.Controls.Add(this.btnDetectPath);
             this.Controls.Add(this.btnCancel);
@@ -217,12 +280,15 @@
         private System.Windows.Forms.Button btnOk;
         private System.Windows.Forms.Timer statusTimer;
         private System.Windows.Forms.Button btnDetectPath;
-        private System.Windows.Forms.CheckBox chkGroupByType;
+        private System.Windows.Forms.CheckBox chkAddFpt;
         private System.Windows.Forms.TextBox txtRtssLocation;
         private System.Windows.Forms.CheckBox chkSeparateGroups;
         private System.Windows.Forms.CheckBox chkUseSensorNameAsKey;
         private System.Windows.Forms.Label lblAvailableState;
         private System.Windows.Forms.Label lblRunningState;
         private System.Windows.Forms.Button btnTryRun;
+        private System.Windows.Forms.RadioButton radioButton1;
+        private System.Windows.Forms.RadioButton radioButton2;
+        private System.Windows.Forms.RadioButton radioButton3;
     }
 }
