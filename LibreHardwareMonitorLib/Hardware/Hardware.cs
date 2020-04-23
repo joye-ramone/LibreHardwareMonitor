@@ -81,11 +81,15 @@ namespace LibreHardwareMonitor.Hardware
             }
         }
 
+        public event SensorEventHandler SensorAdded;
+
         protected virtual void ActivateSensor(ISensor sensor)
         {
             if (_active.Add(sensor))
                 SensorAdded?.Invoke(sensor);
         }
+
+        public event SensorEventHandler SensorRemoved;
 
         protected virtual void DeactivateSensor(ISensor sensor)
         {
@@ -93,17 +97,15 @@ namespace LibreHardwareMonitor.Hardware
                 SensorRemoved?.Invoke(sensor);
         }
 
-        public event HardwareEventHandler Closing;
-
         public virtual void Close()
         {
-            Closing?.Invoke(this);
+            foreach (ISensor sensor in _active)
+            {
+                if (sensor is Sensor own)
+                {
+                    own.SetSensorValuesToSettings();
+                }
+            }
         }
-
-#pragma warning disable 67
-        public event SensorEventHandler SensorAdded;
-
-        public event SensorEventHandler SensorRemoved;
-#pragma warning restore 67
     }
 }

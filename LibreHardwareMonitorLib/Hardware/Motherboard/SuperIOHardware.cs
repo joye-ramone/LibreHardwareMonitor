@@ -72,36 +72,9 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
                 {
                     Sensor sensor = new Sensor(ctrl.Name, index, SensorType.Control, this, settings);
                     Control control = new Control(sensor, settings, 0, 100);
-                    control.ControlModeChanged += cc =>
-                    {
-                        switch (cc.ControlMode)
-                        {
-                            case ControlMode.Undefined:
-                            {
-                                return;
-                            }
-                            case ControlMode.Default:
-                            {
-                                superIO.SetControl(index, null);
-                                break;
-                            }
-                            case ControlMode.Software:
-                            {
-                                superIO.SetControl(index, (byte)(cc.SoftwareValue * 2.55));
-                                break;
-                            }
-                            default:
-                            {
-                                return;
-                            }
-                        }
-                    };
 
-                    control.SoftwareControlValueChanged += cc =>
-                    {
-                        if (cc.ControlMode == ControlMode.Software)
-                            superIO.SetControl(index, (byte)(cc.SoftwareValue * 2.55));
-                    };
+                    control.ControlModeChanged += OnControlOnControlModeChanged;
+                    control.SoftwareControlValueChanged += OnControlOnSoftwareControlValueChanged;
 
                     switch (control.ControlMode)
                     {
@@ -126,6 +99,39 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
                     sensor.Control = control;
                     _controls.Add(sensor);
                     ActivateSensor(sensor);
+                }
+            }
+        }
+
+        private void OnControlOnSoftwareControlValueChanged(Control cc)
+        {
+            if (cc.ControlMode == ControlMode.Software)
+            {
+                _superIO.SetControl(cc.Sensor.Index, (byte)(cc.SoftwareValue * 2.55));
+            }
+        }
+
+        private void OnControlOnControlModeChanged(Control cc)
+        {
+            switch (cc.ControlMode)
+            {
+                case ControlMode.Undefined:
+                {
+                    return;
+                }
+                case ControlMode.Default:
+                {
+                    _superIO.SetControl(cc.Sensor.Index, null);
+                    break;
+                }
+                case ControlMode.Software:
+                {
+                    _superIO.SetControl(cc.Sensor.Index, (byte)(cc.SoftwareValue * 2.55));
+                    break;
+                }
+                default:
+                {
+                    return;
                 }
             }
         }
@@ -2485,6 +2491,12 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
             {
                 // restore all controls back to default
                 _superIO.SetControl(sensor.Index, null);
+
+                if (sensor.Control is Control control)
+                {
+                    control.ControlModeChanged -= OnControlOnControlModeChanged;
+                    control.SoftwareControlValueChanged -= OnControlOnSoftwareControlValueChanged;
+                }
             }
 
             base.Close();

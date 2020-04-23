@@ -12,34 +12,41 @@ namespace LibreHardwareMonitor.Hardware
 
     internal class Control : IControl
     {
+        private readonly ISensor _sensor;
         private readonly ISettings _settings;
+
         private ControlMode _mode;
         private float _softwareValue;
 
-        public Control
-        (
+        public Control(
             ISensor sensor,
             ISettings settings,
             float minSoftwareValue,
             float maxSoftwareValue)
         {
-            Identifier = new Identifier(sensor.Identifier, "control");
+            _sensor = sensor;
             _settings = settings;
+
+            Identifier = new Identifier(_sensor.Identifier, "control");
+
             MinSoftwareValue = minSoftwareValue;
             MaxSoftwareValue = maxSoftwareValue;
 
-            if (!float.TryParse(settings.GetValue(new Identifier(Identifier, "value").ToString(), "0"), NumberStyles.Float, CultureInfo.InvariantCulture, out _softwareValue))
+            if (!float.TryParse(settings.GetValue(new Identifier(Identifier, "value").ToString(), "0"),
+                NumberStyles.Float, CultureInfo.InvariantCulture, out _softwareValue))
+            {
                 _softwareValue = 0;
+            }
 
             if (!int.TryParse(settings.GetValue(new Identifier(Identifier, "mode").ToString(), ((int)ControlMode.Undefined).ToString(CultureInfo.InvariantCulture)),
-                              NumberStyles.Integer,
-                              CultureInfo.InvariantCulture,
-                              out int mode))
+                              NumberStyles.Integer, CultureInfo.InvariantCulture, out int mode))
             {
                 _mode = ControlMode.Undefined;
             }
             else
+            {
                 _mode = (ControlMode)mode;
+            }
         }
 
         public ControlMode ControlMode
@@ -55,6 +62,8 @@ namespace LibreHardwareMonitor.Hardware
                 }
             }
         }
+
+        public ISensor Sensor { get { return _sensor; } }
 
         public Identifier Identifier { get; }
 

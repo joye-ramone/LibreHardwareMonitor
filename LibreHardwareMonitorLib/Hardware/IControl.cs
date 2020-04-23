@@ -15,6 +15,8 @@ namespace LibreHardwareMonitor.Hardware
 
     public interface IControl
     {
+        ISensor Sensor { get; }
+
         ControlMode ControlMode { get; }
 
         Identifier Identifier { get; }

@@ -18,10 +18,12 @@ namespace LibreHardwareMonitor.Hardware
         private readonly Hardware _hardware;
         private readonly ISettings _settings;
         private readonly List<SensorValue> _values = new List<SensorValue>();
+
         private int _count;
         private float? _currentValue;
         private string _name;
         private float _sum;
+
         private TimeSpan _valuesTimeWindow = TimeSpan.FromDays(1.0);
 
         public Sensor(string name, int index, SensorType sensorType, Hardware hardware, ISettings settings) :
@@ -53,8 +55,6 @@ namespace LibreHardwareMonitor.Hardware
             _name = settings.GetValue(new Identifier(Identifier, "name").ToString(), name);
 
             GetSensorValuesFromSettings();
-
-            hardware.Closing += delegate { SetSensorValuesToSettings(); };
         }
 
         public IControl Control { get; internal set; }
@@ -168,7 +168,7 @@ namespace LibreHardwareMonitor.Hardware
             }
         }
 
-        private void SetSensorValuesToSettings()
+        internal void SetSensorValuesToSettings()
         {
             using (MemoryStream memoryStream = new MemoryStream())
             {

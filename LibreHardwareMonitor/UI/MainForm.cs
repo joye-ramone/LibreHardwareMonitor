@@ -172,6 +172,7 @@ namespace LibreHardwareMonitor.UI
             if (p == 4 || p == 128)
             { // Unix
                 treeView.RowHeight = Math.Max(treeView.RowHeight, 18);
+
                 splitContainer.BorderStyle = BorderStyle.None;
                 splitContainer.Border3DStyle = Border3DStyle.Adjust;
                 splitContainer.SplitterWidth = 4;
@@ -185,6 +186,7 @@ namespace LibreHardwareMonitor.UI
             else
             { // Windows
                 treeView.RowHeight = Math.Max(treeView.Font.Height + 1, 18);
+
                 _gadget = new SensorGadget(_computer, _settings, _unitManager);
                 _gadget.HideShowCommand += HideShowClick;
 
