@@ -449,6 +449,7 @@ namespace LibreHardwareMonitor.UI
 
             _interceptor = new KeyboardInterceptor();
             _interceptor.KeyUp += OnGlobalHotKey;
+            _interceptor.KeyDown += OnGlobalHotKeyPre;
             _interceptor.StartCapturing();
 
             // Create a handle, otherwise calling Close() does not fire FormClosed
@@ -486,16 +487,29 @@ namespace LibreHardwareMonitor.UI
             }
         }
 
+        private void OnGlobalHotKeyPre(object sender, KeyEventArgs e)
+        {
+            if (_enableShowHideHotKey && (e.KeyData == _showHideHotKey))
+            {
+                e.SuppressKeyPress = true;
+            }
+
+            if (_enableRtssHotKey && (e.KeyData == _rtssHotKey))
+            {
+                e.SuppressKeyPress = true;
+            }
+        }
+
         private void OnGlobalHotKey(object sender, KeyEventArgs e)
         {
-            if (_enableShowHideHotKey && (e.KeyData & _showHideHotKey) == e.KeyData)
+            if (_enableShowHideHotKey && (e.KeyData == _showHideHotKey))
             {
                 SysTrayHideShow();
 
                 e.SuppressKeyPress = true;
             }
 
-            if (_enableRtssHotKey && (e.KeyData & _rtssHotKey) == e.KeyData)
+            if (_enableRtssHotKey && (e.KeyData == _rtssHotKey))
             {
                 _runRtssService.Value = !_runRtssService.Value;
 

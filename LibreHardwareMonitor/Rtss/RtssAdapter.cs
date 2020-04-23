@@ -29,6 +29,29 @@ namespace LibreHardwareMonitor.Rtss
         private const string RtssNewLine = "\n";
         private const string RtssNewLine2 = "\n\n";
 
+        public string RtssServiceLocation
+        {
+            get { return _rtssService.RtssServiceLocation; }
+            set { _rtssService.RtssServiceLocation = value; }
+        }
+
+        public bool IsServiceRunning
+        {
+            get => _rtssService.IsRunning;
+        }
+
+        public bool IsServiceAvailable
+        {
+            get => _rtssService.IsAvailable;
+        }
+
+        public bool PlatformNotSupported { get; } = false;
+
+        public bool IsActive
+        {
+            get => _osd != null;
+        }
+
         private bool _groupByType;
 
         public bool GroupByType
@@ -38,6 +61,18 @@ namespace LibreHardwareMonitor.Rtss
             {
                 _groupByType = value;
                 _settings.SetValue("RtssAdapter.GroupByType", value);
+            }
+        }
+
+        private bool _separateGroups;
+
+        public bool SeparateGroups
+        {
+            get { return _separateGroups; }
+            set
+            {
+                _separateGroups = value;
+                _settings.SetValue("RtssAdapter.SeparateGroups", value);
             }
         }
 
@@ -76,29 +111,6 @@ namespace LibreHardwareMonitor.Rtss
 
         private OSD _osd;
 
-        public string RtssServiceLocation
-        {
-            get { return _rtssService.RtssServiceLocation; }
-            set { _rtssService.RtssServiceLocation = value; }
-        }
-
-        public bool IsServiceRunning
-        {
-            get => _rtssService.IsRunning;
-        }
-
-        public bool IsServiceAvailable
-        {
-            get => _rtssService.IsAvailable;
-        }
-
-        public bool PlatformNotSupported { get; } = false;
-
-        public bool IsActive
-        {
-            get => _osd != null;
-        }
-
         public RtssAdapter(PersistentSettings settings, UnitManager unitManager)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -106,6 +118,7 @@ namespace LibreHardwareMonitor.Rtss
             _rtssService = new RtssService(_settings);
 
             _groupByType = _settings.GetValue("RtssAdapter.GroupByType", false);
+            _separateGroups = _settings.GetValue("RtssAdapter.SeparateGroups", true);
             _useSensorNameAsKey = _settings.GetValue("RtssAdapter.UseSensorNameAsKey", false);
             _addFpsDetails = _settings.GetValue("RtssAdapter.AddFpsDetails", true);
         }
@@ -223,7 +236,7 @@ namespace LibreHardwareMonitor.Rtss
                     return group;
                 });
 
-                result = string.Join(RtssNewLine2, d);
+                result = string.Join(SeparateGroups ? RtssNewLine2 : RtssNewLine, d);
             }
             else
             {
@@ -256,7 +269,7 @@ namespace LibreHardwareMonitor.Rtss
                     return group;
                 });
 
-                result = string.Join(RtssNewLine2, d);
+                result = string.Join(SeparateGroups ? RtssNewLine2 : RtssNewLine, d);
             }
 
             if (AddFpsDetails)
