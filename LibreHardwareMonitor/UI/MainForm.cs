@@ -37,8 +37,8 @@ namespace LibreHardwareMonitor.UI
         private readonly RtssAdapter _rtssAdapter;
         private readonly HttpServer _server;
 
-        private readonly Color[] _plotColorPalette;
         private readonly PlotPanel _plotPanel;
+        private readonly Color[] _plotColorPalette;
         private readonly Form _plotForm;
 
         private readonly UserOption _showPlot;
@@ -69,8 +69,11 @@ namespace LibreHardwareMonitor.UI
         private readonly WmiProvider _wmiProvider;
         private readonly Logger _logger;
 
-        private readonly bool _enableHideHotKey = false;
+        private readonly bool _enableShowHideHotKey;
         private readonly Keys _showHideHotKey = Keys.Control | Keys.Shift | Keys.Oemtilde;
+
+        private readonly bool _enableRtssHotKey;
+        private readonly Keys _rtssHotKey = Keys.Control | Keys.Alt | Keys.F12;
 
         private readonly IKeyboardInterceptor _interceptor;
 
@@ -439,10 +442,13 @@ namespace LibreHardwareMonitor.UI
                 Show();
 
             _showHideHotKey = (Keys)_settings.GetValue("ShowHideHotKey", (int)_showHideHotKey);
-            _enableHideHotKey = _settings.GetValue("EnableHideHotKey", false);
+            _enableShowHideHotKey = _settings.GetValue("EnableShowHideHotKey", false);
+
+            _rtssHotKey = (Keys)_settings.GetValue("RtssHotKey", (int)_rtssHotKey);
+            _enableRtssHotKey = _settings.GetValue("EnableRtssHotKey", false);
 
             _interceptor = new KeyboardInterceptor();
-            _interceptor.KeyUp += OnHotKey;
+            _interceptor.KeyUp += OnGlobalHotKey;
             _interceptor.StartCapturing();
 
             // Create a handle, otherwise calling Close() does not fire FormClosed
@@ -480,14 +486,18 @@ namespace LibreHardwareMonitor.UI
             }
         }
 
-        private void OnHotKey(object sender, KeyEventArgs e)
+        private void OnGlobalHotKey(object sender, KeyEventArgs e)
         {
-            if (!_enableHideHotKey)
-                return;
-
-            if ((e.KeyData & _showHideHotKey) == e.KeyData)
+            if (_enableShowHideHotKey && (e.KeyData & _showHideHotKey) == e.KeyData)
             {
                 SysTrayHideShow();
+
+                e.SuppressKeyPress = true;
+            }
+
+            if (_enableRtssHotKey && (e.KeyData & _rtssHotKey) == e.KeyData)
+            {
+                _runRtssService.Value = !_runRtssService.Value;
 
                 e.SuppressKeyPress = true;
             }
@@ -777,6 +787,10 @@ namespace LibreHardwareMonitor.UI
                 return;
 
             _settings.SetValue("ShowHideHotKey", (int)_showHideHotKey);
+            _settings.SetValue("EnableShowHideHotKey", _enableShowHideHotKey);
+
+            _settings.SetValue("RtssHotKey", (int)_rtssHotKey);
+            _settings.SetValue("EnableRtssHotKey", _enableRtssHotKey);
 
             _plotPanel.SaveCurrentSettings();
 
