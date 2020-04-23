@@ -134,16 +134,7 @@ namespace LibreHardwareMonitor.Utilities
         private IEnumerable<KeyValuePair<string, string>> SortSettingsForSave()
         {
             return _settings
-                .OrderBy(v =>
-                {
-                    int lastIndexOf = v.Key.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase);
-                    if (lastIndexOf != -1)
-                    {
-                        return v.Key.Substring(lastIndexOf);
-                    }
-                    return v.Key;
-                })
-                .ThenBy(v => v.Key);
+                .OrderBy(v => v.Key);
         }
 
         public bool Contains(string name)
@@ -160,7 +151,6 @@ namespace LibreHardwareMonitor.Utilities
         {
             if (_settings.TryGetValue(name, out string result))
                 return result;
-
 
             return value;
         }

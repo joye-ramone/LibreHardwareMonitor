@@ -75,7 +75,12 @@ namespace LibreHardwareMonitor.UI
             set
             {
                 _plot = value;
-                _settings.SetValue(new Identifier(Sensor.Identifier, "plot").ToString(), value);
+
+                if (value)
+                    _settings.SetValue(new Identifier(Sensor.Identifier, "plot").ToString(), value);
+                else
+                    _settings.Remove(new Identifier(Sensor.Identifier, "plot").ToString());
+
                 PlotSelectionChanged?.Invoke(this, null);
             }
         }
