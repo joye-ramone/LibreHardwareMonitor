@@ -79,14 +79,14 @@ namespace LibreHardwareMonitor.Hardware
 
         public void Accept(IVisitor visitor)
         {
-            if (visitor == null)
-                throw new ArgumentNullException(nameof(visitor));
-
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
 
             visitor.VisitParameter(this);
         }
 
         public void Traverse(IVisitor visitor)
-        { }
+        {
+
+        }
     }
 }

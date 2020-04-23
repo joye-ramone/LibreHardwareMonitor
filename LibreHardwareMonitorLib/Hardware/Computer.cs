@@ -24,15 +24,18 @@ namespace LibreHardwareMonitor.Hardware
     {
         private readonly List<IGroup> _groups = new List<IGroup>();
         private readonly ISettings _settings;
+
         private bool _cpuEnabled;
         private bool _controllerEnabled;
         private bool _gpuEnabled;
         private bool _memoryEnabled;
         private bool _motherboardEnabled;
         private bool _networkEnabled;
-        private bool _open;
-        private SMBios _smbios;
         private bool _storageEnabled;
+
+        private bool _open;
+
+        private SMBios _smbios;
 
         public Computer()
         {
@@ -284,19 +287,21 @@ namespace LibreHardwareMonitor.Hardware
 
         public void Accept(IVisitor visitor)
         {
-            if (visitor == null)
-                throw new ArgumentNullException(nameof(visitor));
-
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
 
             visitor.VisitComputer(this);
         }
 
         public void Traverse(IVisitor visitor)
         {
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
+
             foreach (IGroup group in _groups)
             {
                 foreach (IHardware hardware in group.Hardware)
+                {
                     hardware.Accept(visitor);
+                }
             }
         }
 

@@ -13,6 +13,7 @@ namespace LibreHardwareMonitor.Hardware
     public abstract class Hardware : IHardware
     {
         protected readonly HashSet<ISensor> _active = new HashSet<ISensor>();
+
         protected readonly string _name;
         protected readonly ISettings _settings;
 
@@ -65,17 +66,19 @@ namespace LibreHardwareMonitor.Hardware
 
         public void Accept(IVisitor visitor)
         {
-            if (visitor == null)
-                throw new ArgumentNullException(nameof(visitor));
-
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
 
             visitor.VisitHardware(this);
         }
 
         public virtual void Traverse(IVisitor visitor)
         {
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
+
             foreach (ISensor sensor in _active)
+            {
                 sensor.Accept(visitor);
+            }
         }
 
         protected virtual void ActivateSensor(ISensor sensor)

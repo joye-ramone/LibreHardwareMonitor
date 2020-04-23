@@ -264,12 +264,6 @@ namespace LibreHardwareMonitor.Hardware.Storage
             return r.ToString();
         }
 
-        public override void Traverse(IVisitor visitor)
-        {
-            foreach (ISensor sensor in Sensors)
-                sensor.Accept(visitor);
-        }
-
         /// <summary>
         /// Helper to calculate the disk performance with base timestamps
         /// https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-perfrawdata

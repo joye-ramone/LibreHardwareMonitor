@@ -153,17 +153,19 @@ namespace LibreHardwareMonitor.Hardware
 
         public void Accept(IVisitor visitor)
         {
-            if (visitor == null)
-                throw new ArgumentNullException(nameof(visitor));
-
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
 
             visitor.VisitSensor(this);
         }
 
         public void Traverse(IVisitor visitor)
         {
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
+
             foreach (IParameter parameter in Parameters)
+            {
                 parameter.Accept(visitor);
+            }
         }
 
         private void SetSensorValuesToSettings()

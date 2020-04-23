@@ -45,8 +45,6 @@ namespace LibreHardwareMonitor.Rtss
             get => _rtssService.IsAvailable;
         }
 
-        public bool PlatformNotSupported { get; } = false;
-
         public bool IsActive
         {
             get => _osd != null;
@@ -110,6 +108,8 @@ namespace LibreHardwareMonitor.Rtss
         private bool _initializing;
 
         private OSD _osd;
+
+        public bool PlatformNotSupported { get; } = false;
 
         public RtssAdapter(PersistentSettings settings, UnitManager unitManager)
         {

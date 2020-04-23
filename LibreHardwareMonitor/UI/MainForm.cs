@@ -1182,10 +1182,10 @@ namespace LibreHardwareMonitor.UI
 
         private void ResetMinMaxMenuItem_Click(object sender, EventArgs e)
         {
-            _computer.Accept(new SensorVisitor(delegate (ISensor sensorClick)
+            _computer.Accept(new SensorVisitor(delegate (ISensor sensor)
             {
-                sensorClick.ResetMin();
-                sensorClick.ResetMax();
+                sensor.ResetMin();
+                sensor.ResetMax();
             }));
         }
 

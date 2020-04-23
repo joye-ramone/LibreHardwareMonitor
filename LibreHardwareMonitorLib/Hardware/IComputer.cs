@@ -10,13 +10,13 @@ namespace LibreHardwareMonitor.Hardware
 
     public interface IComputer : IElement
     {
+        IHardware[] Hardware { get; }
+
         bool IsCpuEnabled { get; }
 
         bool IsControllerEnabled { get; }
 
         bool IsGpuEnabled { get; }
-
-        IHardware[] Hardware { get; }
 
         bool IsStorageEnabled { get; }
 

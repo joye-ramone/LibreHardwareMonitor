@@ -19,13 +19,15 @@ namespace LibreHardwareMonitor.Utilities
 
         private readonly IComputer _computer;
 
-        private DateTime _day = DateTime.MinValue;
+        private DateTime _fileDate = DateTime.MinValue;
         private DateTime _lastLoggedTime = DateTime.MinValue;
 
         private string _fileName;
 
         private string[] _identifiers;
         private ISensor[] _sensors;
+
+        public TimeSpan LoggingInterval { get; set; }
 
         public Logger(IComputer computer)
         {
@@ -117,7 +119,7 @@ namespace LibreHardwareMonitor.Utilities
                     if (sensor.Identifier.ToString() == _identifiers[i])
                         _sensors[i] = sensor;
             });
-            visitor.VisitComputer(_computer);
+            _computer.Accept(visitor);
             return true;
         }
 
@@ -128,7 +130,7 @@ namespace LibreHardwareMonitor.Utilities
             {
                 list.Add(sensor);
             });
-            visitor.VisitComputer(_computer);
+            _computer.Accept(visitor);
 
             _sensors = list.ToArray();
             _identifiers = _sensors.Select(s => s.Identifier.ToString()).ToArray();
@@ -139,6 +141,7 @@ namespace LibreHardwareMonitor.Utilities
                 for (int i = 0; i < _sensors.Length; i++)
                 {
                     writer.Write(_sensors[i].Identifier);
+
                     if (i < _sensors.Length - 1)
                         writer.Write(",");
                     else
@@ -151,6 +154,7 @@ namespace LibreHardwareMonitor.Utilities
                     writer.Write('"');
                     writer.Write(_sensors[i].Name);
                     writer.Write('"');
+
                     if (i < _sensors.Length - 1)
                         writer.Write(",");
                     else
@@ -159,8 +163,6 @@ namespace LibreHardwareMonitor.Utilities
             }
         }
 
-        public TimeSpan LoggingInterval { get; set; }
-
         public void Log()
         {
             DateTime now = DateTime.Now;
@@ -168,10 +170,10 @@ namespace LibreHardwareMonitor.Utilities
             if (_lastLoggedTime + LoggingInterval - new TimeSpan(5000000) > now)
                 return;
 
-            if (_day != now.Date || !File.Exists(_fileName))
+            if (_fileDate != now.Date || !File.Exists(_fileName))
             {
-                _day = now.Date;
-                _fileName = GetFileName(_day);
+                _fileDate = now.Date;
+                _fileName = GetFileName(_fileDate);
 
                 if (!OpenExistingLogFile())
                     CreateNewLogFile();
@@ -183,14 +185,19 @@ namespace LibreHardwareMonitor.Utilities
                 {
                     writer.Write(now.ToString("G", CultureInfo.InvariantCulture));
                     writer.Write(",");
+
                     for (int i = 0; i < _sensors.Length; i++)
                     {
                         if (_sensors[i] != null)
                         {
                             float? value = _sensors[i].Value;
+
                             if (value.HasValue)
+                            {
                                 writer.Write(value.Value.ToString("R", CultureInfo.InvariantCulture));
+                            }
                         }
+
                         if (i < _sensors.Length - 1)
                             writer.Write(",");
                         else

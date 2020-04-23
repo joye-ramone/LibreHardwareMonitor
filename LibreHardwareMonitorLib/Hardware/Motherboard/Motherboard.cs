@@ -122,17 +122,19 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
 
         public void Accept(IVisitor visitor)
         {
-            if (visitor == null)
-                throw new ArgumentNullException(nameof(visitor));
-
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
 
             visitor.VisitHardware(this);
         }
 
         public void Traverse(IVisitor visitor)
         {
+            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
+
             foreach (IHardware hardware in SubHardware)
+            {
                 hardware.Accept(visitor);
+            }
         }
 
         public event SensorEventHandler SensorAdded;

@@ -19,22 +19,22 @@ namespace LibreHardwareMonitor.Hardware
 
         public void VisitComputer(IComputer computer)
         {
-            if (computer == null)
-                throw new ArgumentNullException(nameof(computer));
+            if (computer == null) throw new ArgumentNullException(nameof(computer));
 
             computer.Traverse(this);
         }
 
         public void VisitHardware(IHardware hardware)
         {
-            if (hardware == null)
-                throw new ArgumentNullException(nameof(hardware));
+            if (hardware == null) throw new ArgumentNullException(nameof(hardware));
 
             hardware.Traverse(this);
         }
 
         public void VisitSensor(ISensor sensor)
         {
+            if (sensor == null) throw new ArgumentNullException(nameof(sensor));
+
             _handler(sensor);
         }
 

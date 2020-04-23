@@ -4,6 +4,7 @@
 // Partial Copyright (C) Michael Möller <mmoeller@openhardwaremonitor.org> and Contributors.
 // All Rights Reserved.
 
+using System;
 using LibreHardwareMonitor.Hardware;
 
 namespace LibreHardwareMonitor.UI
@@ -12,19 +13,27 @@ namespace LibreHardwareMonitor.UI
     {
         public void VisitComputer(IComputer computer)
         {
+            if (computer == null) throw new ArgumentNullException(nameof(computer));
+
             computer.Traverse(this);
         }
 
         public void VisitHardware(IHardware hardware)
         {
-            hardware.Update();
+            if (hardware == null) throw new ArgumentNullException(nameof(hardware));
 
-            foreach (IHardware subHardware in hardware.SubHardware)
-                subHardware.Accept(this);
+            hardware.Update();
+            hardware.Traverse(this);
         }
 
-        public void VisitSensor(ISensor sensor) { }
+        public void VisitSensor(ISensor sensor)
+        {
 
-        public void VisitParameter(IParameter parameter) { }
+        }
+
+        public void VisitParameter(IParameter parameter)
+        {
+
+        }
     }
 }
