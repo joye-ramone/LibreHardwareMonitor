@@ -190,7 +190,7 @@ namespace LibreHardwareMonitor.UI
 
         private System.Windows.Forms.Button okButton;
         private System.Windows.Forms.Button cancelButton;
-        public System.Windows.Forms.Label captionLabel;
+        private System.Windows.Forms.Label captionLabel;
         private System.Windows.Forms.DataGridView dataGridView;
         private System.Windows.Forms.Label descriptionLabel;
         private System.Windows.Forms.BindingSource bindingSource;

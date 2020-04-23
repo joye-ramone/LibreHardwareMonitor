@@ -14,8 +14,13 @@ namespace LibreHardwareMonitor.UI
 {
     public partial class ParameterForm : Form
     {
-        private IReadOnlyList<IParameter> _parameters;
         private BindingList<ParameterRow> _parameterRows;
+
+        public string Caption
+        {
+            get { return captionLabel.Text; }
+            set { captionLabel.Text = value; }
+        }
 
         public ParameterForm()
         {
@@ -24,38 +29,30 @@ namespace LibreHardwareMonitor.UI
             CancelButton = cancelButton;
         }
 
-        public IReadOnlyList<IParameter> Parameters
+        public void SetParameters(IReadOnlyList<IParameter> value)
         {
-            get
-            {
-                return _parameters;
-            }
-            set
-            {
-                _parameters = value;
-                _parameterRows = new BindingList<ParameterRow>();
+            _parameterRows = new BindingList<ParameterRow>();
 
-                foreach (IParameter parameter in _parameters)
-                {
-                    _parameterRows.Add(new ParameterRow(parameter));
-                }
-
-                bindingSource.DataSource = _parameterRows;
+            foreach (IParameter parameter in value)
+            {
+                _parameterRows.Add(new ParameterRow(parameter));
             }
+
+            bindingSource.DataSource = _parameterRows;
         }
 
         private class ParameterRow : INotifyPropertyChanged
         {
             public readonly IParameter Parameter;
+
             private float _value = float.NaN;
             private bool _default = true;
 
             public event PropertyChangedEventHandler PropertyChanged;
 
-            private void NotifyPropertyChanged(String propertyName)
+            private void NotifyPropertyChanged(string propertyName)
             {
-                if (PropertyChanged != null)
-                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
 
             public ParameterRow(IParameter parameter)
@@ -68,6 +65,11 @@ namespace LibreHardwareMonitor.UI
             public string Name
             {
                 get { return Parameter.Name; }
+            }
+
+            public string Description
+            {
+                get { return Parameter.Description; }
             }
 
             public float Value
@@ -98,8 +100,8 @@ namespace LibreHardwareMonitor.UI
 
         private void DataGridView_RowEnter(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && e.RowIndex < _parameters.Count)
-                descriptionLabel.Text = _parameters[e.RowIndex].Description;
+            if (e.RowIndex >= 0 && e.RowIndex < _parameterRows.Count)
+                descriptionLabel.Text = _parameterRows[e.RowIndex].Description;
             else
                 descriptionLabel.Text = string.Empty;
         }

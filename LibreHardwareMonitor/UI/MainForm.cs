@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -69,7 +70,7 @@ namespace LibreHardwareMonitor.UI
         private readonly WmiProvider _wmiProvider;
         private readonly Logger _logger;
 
-        private readonly GlobalHotkeys _globalHotkeys;
+        private readonly GlobalHotkey _globalHotkey;
 
         private bool _selectionDragging;
         private int _delayCount;
@@ -437,9 +438,9 @@ namespace LibreHardwareMonitor.UI
             else
                 Show();
 
-            _globalHotkeys = new GlobalHotkeys(_settings);
-            _globalHotkeys.SetHotKeys(GetGlobalHotKeys());
-            _globalHotkeys.Start();
+            _globalHotkey = new GlobalHotkey(_settings);
+            _globalHotkey.SetHotKeys(GetGlobalHotKeys());
+            _globalHotkey.Start();
 
             // Create a handle, otherwise calling Close() does not fire FormClosed
 
@@ -768,7 +769,7 @@ namespace LibreHardwareMonitor.UI
             if (_settings == null)
                 return;
 
-            _globalHotkeys.SaveCurrentSettings();
+            _globalHotkey.SaveCurrentSettings();
 
             _plotPanel.SaveCurrentSettings();
 
@@ -848,7 +849,7 @@ namespace LibreHardwareMonitor.UI
 
             SessionEnd();
 
-            _globalHotkeys.Stop();
+            _globalHotkey.Stop();
             _systemTray.Dispose();
 
             Application.Exit();
@@ -857,11 +858,6 @@ namespace LibreHardwareMonitor.UI
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             CloseApplication();
-        }
-
-        private void AboutMenuItem_Click(object sender, EventArgs e)
-        {
-            new AboutBox().ShowDialog();
         }
 
         private void TreeView_Click(object sender, TreeNodeAdvMouseEventArgs e)
@@ -883,7 +879,7 @@ namespace LibreHardwareMonitor.UI
                         MenuItem item = new MenuItem("Parameters...");
                         item.Click += delegate
                         {
-                            ShowParameterForm(node.Sensor);
+                            ShowParameterForm(node);
                         };
                         treeContextMenu.MenuItems.Add(item);
                     }
@@ -919,9 +915,7 @@ namespace LibreHardwareMonitor.UI
                         MenuItem item = new MenuItem("Pen Color...");
                         item.Click += delegate
                         {
-                            ColorDialog dialog = new ColorDialog { Color = node.PenColor.GetValueOrDefault() };
-                            if (dialog.ShowDialog() == DialogResult.OK)
-                                node.PenColor = dialog.Color;
+                            ShowColorForm(node);
                         };
                         treeContextMenu.MenuItems.Add(item);
                     }
@@ -1061,12 +1055,20 @@ namespace LibreHardwareMonitor.UI
 
         private void SaveReportMenuItem_Click(object sender, EventArgs e)
         {
-            string report = _computer.GetReport();
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                using (TextWriter w = new StreamWriter(saveFileDialog.FileName))
+                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.DefaultExt = "txt";
+                saveFileDialog.FileName = "LibreHardwareMonitor.Report.txt";
+                saveFileDialog.Filter = "Text Documents|*.txt|All Files|*.*";
+                saveFileDialog.Title = "Save Report As";
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    w.Write(report);
+                    using (TextWriter w = new StreamWriter(saveFileDialog.FileName))
+                    {
+                        w.Write(_computer.GetReport());
+                    }
                 }
             }
         }
@@ -1118,16 +1120,36 @@ namespace LibreHardwareMonitor.UI
             SysTrayHideShow();
         }
 
-        private void ShowParameterForm(ISensor sensorForm)
+        private void ShowColorForm(SensorNode node)
         {
-            ParameterForm form = new ParameterForm { Parameters = sensorForm.Parameters, captionLabel = { Text = sensorForm.Name } };
-            form.ShowDialog();
+            using (ColorDialog dialog = new ColorDialog())
+            {
+                dialog.Color = node.PenColor.GetValueOrDefault();
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    node.PenColor = dialog.Color;
+                }
+            }
+        }
+
+        private void ShowParameterForm(SensorNode sensorNode)
+        {
+            using (ParameterForm form = new ParameterForm())
+            {
+                form.Caption= sensorNode.Text;
+                form.SetParameters(sensorNode.Sensor.Parameters);
+
+                form.ShowDialog();
+            }
         }
 
         private void TreeView_NodeMouseDoubleClick(object sender, TreeNodeAdvMouseEventArgs e)
         {
             if (e.Node.Tag is SensorNode node && node.Sensor != null && node.Sensor.Parameters.Count > 0)
-                ShowParameterForm(node.Sensor);
+            {
+                ShowParameterForm(node);
+            }
         }
 
         private void CelsiusMenuItem_Click(object sender, EventArgs e)
@@ -1194,12 +1216,30 @@ namespace LibreHardwareMonitor.UI
 
         private void ServerPortMenuItem_Click(object sender, EventArgs e)
         {
-            new PortForm(_server).ShowDialog();
+            ShowDialogAndDispose(new PortForm(_server));
         }
 
         private void RtssMenuItemOptions_Click(object sender, EventArgs e)
         {
-            new RtssOptionForm(_rtssAdapter).ShowDialog();
+            ShowDialogAndDispose(new RtssOptionForm(_rtssAdapter));
+        }
+
+        private void GlobalHotKeyMenuItem_Click(object sender, EventArgs e)
+        {
+            ShowDialogAndDispose(new GlobalHotkeyForm(_globalHotkey));
+        }
+
+        private void AboutMenuItem_Click(object sender, EventArgs e)
+        {
+            ShowDialogAndDispose(new AboutBox());
+        }
+
+        private static void ShowDialogAndDispose(Form form)
+        {
+            using (form)
+            {
+                form.ShowDialog();
+            }
         }
     }
 }

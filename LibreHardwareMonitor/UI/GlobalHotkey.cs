@@ -37,7 +37,7 @@ namespace LibreHardwareMonitor.UI
         }
     }
 
-    public sealed class GlobalHotkeys
+    public sealed class GlobalHotkey
     {
         private readonly PersistentSettings _settings;
         private readonly IKeyboardInterceptor _interceptor;
@@ -48,7 +48,7 @@ namespace LibreHardwareMonitor.UI
             get => _hotkeyItems;
         }
 
-        public GlobalHotkeys(PersistentSettings settings)
+        public GlobalHotkey(PersistentSettings settings)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
 

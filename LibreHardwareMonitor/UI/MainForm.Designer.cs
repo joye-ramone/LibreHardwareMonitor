@@ -120,14 +120,14 @@ namespace LibreHardwareMonitor.UI
             this.rtssMenuItem = new System.Windows.Forms.MenuItem();
             this.rtssMenuItemRun = new System.Windows.Forms.MenuItem();
             this.rtssMenuItemOptions = new System.Windows.Forms.MenuItem();
+            this.wmiMenuItem = new System.Windows.Forms.MenuItem();
             this.helpMenuItem = new System.Windows.Forms.MenuItem();
             this.aboutMenuItem = new System.Windows.Forms.MenuItem();
             this.treeContextMenu = new System.Windows.Forms.ContextMenu();
-            this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.timer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer = new LibreHardwareMonitor.UI.SplitContainerAdv();
             this.treeView = new Aga.Controls.Tree.TreeViewAdv();
-            this.wmiMenuItem = new System.Windows.Forms.MenuItem();
+            this.globalHotKeyMenuItem = new System.Windows.Forms.MenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.SuspendLayout();
@@ -384,6 +384,7 @@ namespace LibreHardwareMonitor.UI
             this.minTrayMenuItem,
             this.minCloseMenuItem,
             this.startupMenuItem,
+            this.globalHotKeyMenuItem,
             this.separatorMenuItem,
             this.temperatureUnitsMenuItem,
             this.plotLocationMenuItem,
@@ -419,12 +420,12 @@ namespace LibreHardwareMonitor.UI
             // 
             // separatorMenuItem
             // 
-            this.separatorMenuItem.Index = 4;
+            this.separatorMenuItem.Index = 5;
             this.separatorMenuItem.Text = "-";
             // 
             // temperatureUnitsMenuItem
             // 
-            this.temperatureUnitsMenuItem.Index = 5;
+            this.temperatureUnitsMenuItem.Index = 6;
             this.temperatureUnitsMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.celsiusMenuItem,
             this.fahrenheitMenuItem});
@@ -446,7 +447,7 @@ namespace LibreHardwareMonitor.UI
             // 
             // plotLocationMenuItem
             // 
-            this.plotLocationMenuItem.Index = 6;
+            this.plotLocationMenuItem.Index = 7;
             this.plotLocationMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.plotWindowMenuItem,
             this.plotBottomMenuItem,
@@ -473,17 +474,17 @@ namespace LibreHardwareMonitor.UI
             // 
             // logSeparatorMenuItem
             // 
-            this.logSeparatorMenuItem.Index = 7;
+            this.logSeparatorMenuItem.Index = 8;
             this.logSeparatorMenuItem.Text = "-";
             // 
             // logSensorsMenuItem
             // 
-            this.logSensorsMenuItem.Index = 8;
+            this.logSensorsMenuItem.Index = 9;
             this.logSensorsMenuItem.Text = "Log Sensors";
             // 
             // loggingIntervalMenuItem
             // 
-            this.loggingIntervalMenuItem.Index = 9;
+            this.loggingIntervalMenuItem.Index = 10;
             this.loggingIntervalMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.log1sMenuItem,
             this.log2sMenuItem,
@@ -580,7 +581,7 @@ namespace LibreHardwareMonitor.UI
             // 
             // sensorValuesTimeWindowMenuItem
             // 
-            this.sensorValuesTimeWindowMenuItem.Index = 10;
+            this.sensorValuesTimeWindowMenuItem.Index = 11;
             this.sensorValuesTimeWindowMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.timeWindow30sMenuItem,
             this.timeWindow1minMenuItem,
@@ -663,12 +664,12 @@ namespace LibreHardwareMonitor.UI
             // 
             // externalMenuItemSeparator
             // 
-            this.externalMenuItemSeparator.Index = 11;
+            this.externalMenuItemSeparator.Index = 12;
             this.externalMenuItemSeparator.Text = "-";
             // 
             // webMenuItem
             // 
-            this.webMenuItem.Index = 12;
+            this.webMenuItem.Index = 13;
             this.webMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.runWebServerMenuItem,
             this.serverPortMenuItem});
@@ -687,7 +688,7 @@ namespace LibreHardwareMonitor.UI
             // 
             // rtssMenuItem
             // 
-            this.rtssMenuItem.Index = 13;
+            this.rtssMenuItem.Index = 14;
             this.rtssMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.rtssMenuItemRun,
             this.rtssMenuItemOptions});
@@ -704,6 +705,11 @@ namespace LibreHardwareMonitor.UI
             this.rtssMenuItemOptions.Text = "Options";
             this.rtssMenuItemOptions.Click += new System.EventHandler(this.RtssMenuItemOptions_Click);
             // 
+            // wmiMenuItem
+            // 
+            this.wmiMenuItem.Index = 15;
+            this.wmiMenuItem.Text = "Expose to Wmi";
+            // 
             // helpMenuItem
             // 
             this.helpMenuItem.Index = 3;
@@ -716,14 +722,6 @@ namespace LibreHardwareMonitor.UI
             this.aboutMenuItem.Index = 0;
             this.aboutMenuItem.Text = "About";
             this.aboutMenuItem.Click += new System.EventHandler(this.AboutMenuItem_Click);
-            // 
-            // saveFileDialog
-            // 
-            this.saveFileDialog.DefaultExt = "txt";
-            this.saveFileDialog.FileName = "LibreHardwareMonitor.Report.txt";
-            this.saveFileDialog.Filter = "Text Documents|*.txt|All Files|*.*";
-            this.saveFileDialog.RestoreDirectory = true;
-            this.saveFileDialog.Title = "Save Report As";
             // 
             // timer
             // 
@@ -784,10 +782,11 @@ namespace LibreHardwareMonitor.UI
             this.treeView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TreeView_MouseMove);
             this.treeView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TreeView_MouseUp);
             // 
-            // wmiMenuItem
+            // globalHotKeyMenuItem
             // 
-            this.wmiMenuItem.Index = 14;
-            this.wmiMenuItem.Text = "Expose to Wmi";
+            this.globalHotKeyMenuItem.Index = 4;
+            this.globalHotKeyMenuItem.Text = "Global Hotkeys";
+            this.globalHotKeyMenuItem.Click += new System.EventHandler(this.GlobalHotKeyMenuItem_Click);
             // 
             // MainForm
             // 
@@ -839,7 +838,6 @@ namespace LibreHardwareMonitor.UI
         private System.Windows.Forms.ContextMenu treeContextMenu;
         private System.Windows.Forms.MenuItem startMinMenuItem;
         private System.Windows.Forms.MenuItem startupMenuItem;
-        private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Windows.Forms.Timer timer;
         private System.Windows.Forms.MenuItem hiddenMenuItem;
         private System.Windows.Forms.MenuItem MenuItem1;
@@ -904,6 +902,7 @@ namespace LibreHardwareMonitor.UI
         private System.Windows.Forms.MenuItem rtssMenuItemRun;
         private System.Windows.Forms.MenuItem rtssMenuItemOptions;
         private System.Windows.Forms.MenuItem wmiMenuItem;
+        private System.Windows.Forms.MenuItem globalHotKeyMenuItem;
     }
 }
 
