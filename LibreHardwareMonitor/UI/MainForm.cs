@@ -132,7 +132,6 @@ namespace LibreHardwareMonitor.UI
             _showPlot = new UserOption("plotMenuItem", false, plotMenuItem, _settings);
             _plotLocation = new UserRadioGroup("plotLocation", 0, new[] { plotWindowMenuItem, plotBottomMenuItem, plotRightMenuItem }, _settings);
 
-            nodeCheckBox.IsVisibleValueNeeded += NodeCheckBox_IsVisibleValueNeeded;
             nodeTextBoxText.DrawText += NodeTextBoxText_DrawText;
             nodeTextBoxValue.DrawText += NodeTextBoxText_DrawText;
             nodeTextBoxMin.DrawText += NodeTextBoxText_DrawText;
@@ -731,11 +730,6 @@ namespace LibreHardwareMonitor.UI
             e.Cancel = !(treeView.CurrentNode != null &&
               (treeView.CurrentNode.Tag is SensorNode ||
                treeView.CurrentNode.Tag is HardwareNode));
-        }
-
-        private void NodeCheckBox_IsVisibleValueNeeded(object sender, NodeControlValueEventArgs e)
-        {
-            e.Value = (e.Node.Tag is SensorNode) && plotMenuItem.Checked;
         }
 
         private void ExitClick(object sender, EventArgs e)

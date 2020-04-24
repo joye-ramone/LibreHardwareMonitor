@@ -43,13 +43,13 @@ namespace LibreHardwareMonitor.UI
         private int _leftMargin;
         private int _topMargin;
         private int _bottomMargin;
+
         private int _progressWidth;
 
         private readonly IDictionary<IHardware, IList<ISensor>> _sensors = new SortedDictionary<IHardware, IList<ISensor>>(new HardwareComparer());
 
         private readonly UnitManager _unitManager;
         private readonly PersistentSettings _settings;
-        private readonly UserOption _hardwareNames;
 
         private Font _largeFont;
         private Font _smallFont;
@@ -59,6 +59,13 @@ namespace LibreHardwareMonitor.UI
         private readonly StringFormat _stringFormat;
         private readonly StringFormat _trimStringFormat;
         private readonly StringFormat _alignRightStringFormat;
+        private readonly StringFormat _centerStringFormat;
+
+        public bool ShowHardwareNames
+        {
+            get;
+            set;
+        }
 
         public SensorGadget(IComputer computer, PersistentSettings settings, UnitManager unitManager)
         {
@@ -69,9 +76,11 @@ namespace LibreHardwareMonitor.UI
             computer.HardwareRemoved += HardwareRemoved;
 
             _darkWhite = new SolidBrush(Color.FromArgb(0xF0, 0xF0, 0xF0));
+
             _stringFormat = new StringFormat { FormatFlags = StringFormatFlags.NoWrap };
             _trimStringFormat = new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
             _alignRightStringFormat = new StringFormat { Alignment = StringAlignment.Far, FormatFlags = StringFormatFlags.NoWrap };
+            _centerStringFormat = new StringFormat { Alignment = StringAlignment.Center };
 
             if (File.Exists("gadget_background.png"))
             {
@@ -143,8 +152,17 @@ namespace LibreHardwareMonitor.UI
 
             ContextMenu contextMenu = new ContextMenu();
 
+            MenuItem hideShowItem = new MenuItem("Hide/Show") { DefaultItem = true };
+            hideShowItem.Click += delegate
+            {
+                SendHideShowCommand();
+            };
+            contextMenu.MenuItems.Add(hideShowItem);
+            contextMenu.MenuItems.Add(new MenuItem("-"));
+
             MenuItem hardwareNamesItem = new MenuItem("Hardware Names");
             contextMenu.MenuItems.Add(hardwareNamesItem);
+
             MenuItem fontSizeMenu = new MenuItem("Font Size");
             for (int i = 0; i < 4; i++)
             {
@@ -172,12 +190,13 @@ namespace LibreHardwareMonitor.UI
                 fontSizeMenu.MenuItems.Add(item);
             }
             contextMenu.MenuItems.Add(fontSizeMenu);
-            contextMenu.MenuItems.Add(new MenuItem("-"));
+
             MenuItem lockItem = new MenuItem("Lock Position and Size");
             contextMenu.MenuItems.Add(lockItem);
-            contextMenu.MenuItems.Add(new MenuItem("-"));
+
             MenuItem alwaysOnTopItem = new MenuItem("Always on Top");
             contextMenu.MenuItems.Add(alwaysOnTopItem);
+
             MenuItem opacityMenu = new MenuItem("Opacity");
             for (int i = 0; i < 5; i++)
             {
@@ -187,9 +206,13 @@ namespace LibreHardwareMonitor.UI
                 item.Click += delegate
                 {
                     Opacity = o;
+
                     settings.SetValue("sensorGadget.Opacity", Opacity);
+
                     foreach (MenuItem mi in opacityMenu.MenuItems)
+                    {
                         mi.Checked = mi == item;
+                    }
                 };
                 opacityMenu.MenuItems.Add(item);
             }
@@ -197,9 +220,10 @@ namespace LibreHardwareMonitor.UI
 
             ContextMenu = contextMenu;
 
-            _hardwareNames = new UserOption("sensorGadget.HardwareNames", true, hardwareNamesItem, settings);
-            _hardwareNames.Changed += delegate
+            UserOption hardwareNames = new UserOption("sensorGadget.HardwareNames", true, hardwareNamesItem, settings);
+            hardwareNames.Changed += delegate
             {
+                ShowHardwareNames = !ShowHardwareNames;
                 Resize();
             };
 
@@ -208,6 +232,7 @@ namespace LibreHardwareMonitor.UI
             {
                 AlwaysOnTop = alwaysOnTop.Value;
             };
+
             UserOption lockPositionAndSize = new UserOption("sensorGadget.LockPositionAndSize", false, lockItem, settings);
             lockPositionAndSize.Changed += delegate
             {
@@ -222,9 +247,8 @@ namespace LibreHardwareMonitor.UI
                 if (e.Location.X < LeftBorder)
                 {
                     e.HitResult = HitResult.Left;
-                    return;
                 }
-                if (e.Location.X > Size.Width - 1 - RightBorder)
+                else if (e.Location.X > Size.Width - 1 - RightBorder)
                 {
                     e.HitResult = HitResult.Right;
                 }
@@ -240,6 +264,7 @@ namespace LibreHardwareMonitor.UI
             {
                 Rectangle bounds = new Rectangle(Location, Size);
                 Screen screen = Screen.FromRectangle(bounds);
+
                 Rectangle intersection = Rectangle.Intersect(screen.WorkingArea, bounds);
                 if (intersection.Width < Math.Min(16, bounds.Width) || intersection.Height < Math.Min(16, bounds.Height))
                 {
@@ -256,27 +281,22 @@ namespace LibreHardwareMonitor.UI
         public override void Dispose()
         {
             _largeFont.Dispose();
-
             _smallFont.Dispose();
 
             _darkWhite.Dispose();
 
             _stringFormat.Dispose();
-
             _trimStringFormat.Dispose();
-
             _alignRightStringFormat.Dispose();
+            _centerStringFormat.Dispose();
 
             _back.Dispose();
-
             _barFore.Dispose();
-
             _barBack.Dispose();
 
             _background.Dispose();
 
             _image?.Dispose();
-
             _fore?.Dispose();
 
             base.Dispose();
@@ -336,8 +356,7 @@ namespace LibreHardwareMonitor.UI
             // get the sensor list associated with the hardware
             if (!_sensors.TryGetValue(hardware, out IList<ISensor> list))
             {
-                list = new List<ISensor>();
-                _sensors.Add(hardware, list);
+                _sensors[hardware] = list = new List<ISensor>();
             }
 
             // insert the sensor at the right position
@@ -360,7 +379,9 @@ namespace LibreHardwareMonitor.UI
         private void Remove(ISensor sensor, bool deleteConfig)
         {
             if (deleteConfig)
+            {
                 _settings.Remove(new Identifier(sensor.Identifier, "gadget").ToString());
+            }
 
             foreach (KeyValuePair<IHardware, IList<ISensor>> keyValue in _sensors)
             {
@@ -408,15 +429,18 @@ namespace LibreHardwareMonitor.UI
             double scaledFontSize = _fontSize * _scale;
 
             _iconSize = (int)Math.Round(1.5 * scaledFontSize);
+
             _hardwareLineHeight = (int)Math.Round(1.66 * scaledFontSize);
             _sensorLineHeight = (int)Math.Round(1.33 * scaledFontSize);
+
             _leftMargin = LeftBorder + (int)Math.Round(0.3 * scaledFontSize);
             _rightMargin = RightBorder + (int)Math.Round(0.3 * scaledFontSize);
             _topMargin = TopBorder;
             _bottomMargin = BottomBorder + (int)Math.Round(0.3 * scaledFontSize);
+
             _progressWidth = (int)Math.Round(5.3 * scaledFontSize);
 
-            Resize((int)Math.Round(17.3 * scaledFontSize));
+            Resize(); // (int)Math.Round(17.3 * scaledFontSize)
         }
 
         private void Resize()
@@ -430,10 +454,13 @@ namespace LibreHardwareMonitor.UI
 
             foreach (KeyValuePair<IHardware, IList<ISensor>> pair in _sensors)
             {
-                if (_hardwareNames.Value)
+                if (ShowHardwareNames)
                 {
                     if (y > _topMargin)
+                    {
                         y += _hardwareLineHeight - _sensorLineHeight;
+                    }
+
                     y += _hardwareLineHeight;
                 }
                 y += pair.Value.Count * _sensorLineHeight;
@@ -443,10 +470,11 @@ namespace LibreHardwareMonitor.UI
                 y += 4 * _sensorLineHeight + _hardwareLineHeight;
 
             y += _bottomMargin;
+
             Size = new Size(width, y);
         }
 
-        private void DrawImageWidthBorder(Graphics g, int width, int height, Image back, int t, int b, int l, int r)
+        private static void DrawImageWidthBorder(Graphics g, int width, int height, Image back, int t, int b, int l, int r)
         {
             GraphicsUnit u = GraphicsUnit.Pixel;
 
@@ -537,17 +565,16 @@ namespace LibreHardwareMonitor.UI
             if (SensorsCount == 0)
             {
                 x = LeftBorder + 1;
-                g.DrawString("Right-click on a sensor in the main window and select " +
-                  "\"Show in Gadget\" to show the sensor here.",
-                  _smallFont, Brushes.White,
-                  new Rectangle(x, y - 1, w - RightBorder - x, 0));
+
+                g.DrawString("Right-click on a sensor and select \"Show in Gadget\" to show it here.",
+                  _smallFont, Brushes.White, new Rectangle(x, y - 1, w - RightBorder - x, 0), _centerStringFormat);
 
                 return;
             }
 
             foreach (KeyValuePair<IHardware, IList<ISensor>> pair in _sensors)
             {
-                if (_hardwareNames.Value)
+                if (ShowHardwareNames)
                 {
                     if (y > _topMargin)
                         y += _hardwareLineHeight - _sensorLineHeight;

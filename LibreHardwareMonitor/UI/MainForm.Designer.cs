@@ -41,7 +41,6 @@ namespace LibreHardwareMonitor.UI
             this.min = new Aga.Controls.Tree.TreeColumn();
             this.max = new Aga.Controls.Tree.TreeColumn();
             this.nodeImage = new Aga.Controls.Tree.NodeControls.NodeIcon();
-            this.nodeCheckBox = new Aga.Controls.Tree.NodeControls.NodeCheckBox();
             this.nodeTextBoxText = new Aga.Controls.Tree.NodeControls.NodeTextBox();
             this.nodeTextBoxValue = new Aga.Controls.Tree.NodeControls.NodeTextBox();
             this.nodeTextBoxMin = new Aga.Controls.Tree.NodeControls.NodeTextBox();
@@ -167,13 +166,6 @@ namespace LibreHardwareMonitor.UI
             this.nodeImage.LeftMargin = 1;
             this.nodeImage.ParentColumn = this.sensor;
             this.nodeImage.ScaleMode = Aga.Controls.Tree.ImageScaleMode.Fit;
-            // 
-            // nodeCheckBox
-            // 
-            this.nodeCheckBox.DataPropertyName = "Plot";
-            this.nodeCheckBox.EditEnabled = true;
-            this.nodeCheckBox.LeftMargin = 3;
-            this.nodeCheckBox.ParentColumn = this.sensor;
             // 
             // nodeTextBoxText
             // 
@@ -798,7 +790,7 @@ namespace LibreHardwareMonitor.UI
             this.Menu = this.mainMenu;
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "Libre Hardware Monitor";
+            this.Text = "Libre Hardware Monitor (fork)";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.ResizeEnd += new System.EventHandler(this.MainForm_MoveOrResize);
             this.Move += new System.EventHandler(this.MainForm_MoveOrResize);
@@ -811,10 +803,9 @@ namespace LibreHardwareMonitor.UI
 
         #endregion
 
+        private System.Windows.Forms.Timer timer;
+        private SplitContainerAdv splitContainer;
         private Aga.Controls.Tree.TreeViewAdv treeView;
-        private System.Windows.Forms.MainMenu mainMenu;
-        private System.Windows.Forms.MenuItem fileMenuItem;
-        private System.Windows.Forms.MenuItem exitMenuItem;
         private Aga.Controls.Tree.TreeColumn sensor;
         private Aga.Controls.Tree.TreeColumn value;
         private Aga.Controls.Tree.TreeColumn min;
@@ -824,21 +815,21 @@ namespace LibreHardwareMonitor.UI
         private Aga.Controls.Tree.NodeControls.NodeTextBox nodeTextBoxValue;
         private Aga.Controls.Tree.NodeControls.NodeTextBox nodeTextBoxMin;
         private Aga.Controls.Tree.NodeControls.NodeTextBox nodeTextBoxMax;
-        private SplitContainerAdv splitContainer;
+        private System.Windows.Forms.MainMenu mainMenu;
+        private System.Windows.Forms.MenuItem fileMenuItem;
+        private System.Windows.Forms.MenuItem exitMenuItem;
         private System.Windows.Forms.MenuItem viewMenuItem;
         private System.Windows.Forms.MenuItem plotMenuItem;
-        private Aga.Controls.Tree.NodeControls.NodeCheckBox nodeCheckBox;
         private System.Windows.Forms.MenuItem helpMenuItem;
         private System.Windows.Forms.MenuItem aboutMenuItem;
+        private System.Windows.Forms.ContextMenu treeContextMenu;
         private System.Windows.Forms.MenuItem saveReportMenuItem;
         private System.Windows.Forms.MenuItem optionsMenuItem;
         private System.Windows.Forms.MenuItem hddMenuItem;
         private System.Windows.Forms.MenuItem minTrayMenuItem;
         private System.Windows.Forms.MenuItem separatorMenuItem;
-        private System.Windows.Forms.ContextMenu treeContextMenu;
         private System.Windows.Forms.MenuItem startMinMenuItem;
         private System.Windows.Forms.MenuItem startupMenuItem;
-        private System.Windows.Forms.Timer timer;
         private System.Windows.Forms.MenuItem hiddenMenuItem;
         private System.Windows.Forms.MenuItem MenuItem1;
         private System.Windows.Forms.MenuItem columnsMenuItem;
