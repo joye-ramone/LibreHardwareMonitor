@@ -107,6 +107,7 @@ namespace LibreHardwareMonitor.Rtss
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
         private readonly RtssService _rtssService;
+        private readonly OsdChartWriter _chartWriter;
 
         private readonly List<RtssDisplayItem> _displayItems = new List<RtssDisplayItem>();
 
@@ -122,6 +123,7 @@ namespace LibreHardwareMonitor.Rtss
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _unitManager = unitManager ?? throw new ArgumentNullException(nameof(unitManager));
             _rtssService = new RtssService(_settings);
+            _chartWriter = new OsdChartWriter(-32, -1, 1);
 
             _groupByType = (GroupByKind)_settings.GetValue("RtssAdapter.GroupByType", (int)GroupByKind.None);
             _separateGroups = _settings.GetValue("RtssAdapter.SeparateGroups", true);
@@ -139,8 +141,10 @@ namespace LibreHardwareMonitor.Rtss
                 SensorType = s.SensorType,
                 HardwareName = s.Hardware.Name,
                 Color = HexConverter(colors[s]),
-                Value = () => s.Value
+                Value = () => s.Value,
             }));
+
+            _chartWriter.Init((uint)_displayItems.Count, 512);
         }
 
         private int _try;
@@ -165,7 +169,11 @@ namespace LibreHardwareMonitor.Rtss
                 {
                     _try = 0;
 
+                    _chartWriter.Begin();
+
                     string data = _displayItems.Count > 0 ? FormatData() : string.Empty;
+
+                    _chartWriter.End();
 
                     try
                     {
@@ -292,9 +300,11 @@ namespace LibreHardwareMonitor.Rtss
                     ? _displayItems.OrderBy(i => i.SensorName)
                     : _displayItems.OrderBy(i => i.SensorType);
 
-                var d = displayItems.Select(item =>
+                var d = displayItems.Select((item, index) =>
                 {
-                    string group = $"<C={item.Color}>{FormatName(item)}:\t{FormatValue(item)}<C>";
+                    string group = $"<C={item.Color}>{FormatName(item)}:\t{FormatValue(item)} " 
+                                   + _chartWriter.Append(_osd, index, item.Value() ?? 0, 0, 100) + "<C>";
+
                     return group;
                 });
 
@@ -313,6 +323,16 @@ namespace LibreHardwareMonitor.Rtss
 
             return RtssTags + result;
         }
+
+        //private static (float Min, float Max) GetMinMax(RtssDisplayItem item)
+        //{
+        //    if (item.SensorType == SensorType.Load)
+        //        return (0, 100);
+        //    if (item.SensorType == SensorType.Temperature)
+        //        return (0, 100);
+
+        //    return (0, 100);
+        //}
 
         public void Start()
         {

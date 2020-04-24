@@ -113,6 +113,7 @@
     <Compile Include="..\LibreHardwareMonitorLib\Properties\AssemblyVersion.cs">
       <Link>Properties\AssemblyVersion.cs</Link>
     </Compile>
+    <Compile Include="Rtss\OsdChartWriter.cs" />
     <Compile Include="Rtss\RtssAdapter.cs" />
     <Compile Include="Rtss\RtssOptionForm.cs">
       <SubType>Form</SubType>
