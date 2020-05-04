@@ -3,7 +3,7 @@ using RTSSSharedMemoryNET;
 
 namespace LibreHardwareMonitor.Rtss
 {
-    public sealed class OsdChartWriter
+    public sealed class RtssChartWriter
     {
         private readonly int _dwWidth;
         private readonly int _dwHeight;
@@ -17,7 +17,7 @@ namespace LibreHardwareMonitor.Rtss
         private uint _currentPosition;
         private uint _currentOffset;
 
-        public OsdChartWriter(int dwWidth, int dwHeight, int dwMargin)
+        public RtssChartWriter(int dwWidth, int dwHeight, int dwMargin)
         {
             _dwWidth = dwWidth;
             _dwHeight = dwHeight;
@@ -49,7 +49,7 @@ namespace LibreHardwareMonitor.Rtss
             _currentOffset = 0;
         }
 
-        public string Append(OSD osd, int chartNumber, float value, float min, float max, OSD.EMBEDDED_OBJECT_GRAPH dwFlags = 0)
+        public string Append(OSD osd, int chartNumber, float value, float min, float max, EMBEDDED_OBJECT_GRAPH dwFlags = 0)
         {
             float[] data = _buffers[chartNumber];
 

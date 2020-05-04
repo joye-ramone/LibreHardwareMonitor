@@ -737,7 +737,7 @@ namespace LibreHardwareMonitor.UI
             CloseApplication();
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void TimerTick(object sender, EventArgs e)
         {
             if (_delayCount < 4)
             {

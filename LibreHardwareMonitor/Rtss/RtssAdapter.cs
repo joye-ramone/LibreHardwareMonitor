@@ -32,7 +32,7 @@ namespace LibreHardwareMonitor.Rtss
 
     public sealed class RtssAdapter
     {
-        private const string RtssTags = "<P=0,0><A0=-6><A1=4><C0=FFA0A0><C1=FF00A0><C2=FFFFFF><S0=-50><S1=-75><S2=50>";
+        private const string RtssDefaultTags = "<P=0,0><A0=-6><A1=4><C0=FFA0A0><C1=FF00A0><C2=FFFFFF><S0=-50><S1=-75><S2=50>";
         private const string RtssNewLine = "\n";
         private const string RtssNewLine2 = "\n\n";
 
@@ -107,7 +107,7 @@ namespace LibreHardwareMonitor.Rtss
         private readonly PersistentSettings _settings;
         private readonly UnitManager _unitManager;
         private readonly RtssService _rtssService;
-        private readonly OsdChartWriter _chartWriter;
+        private readonly RtssChartWriter _rtssChartWriter;
 
         private readonly List<RtssDisplayItem> _displayItems = new List<RtssDisplayItem>();
 
@@ -122,8 +122,9 @@ namespace LibreHardwareMonitor.Rtss
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _unitManager = unitManager ?? throw new ArgumentNullException(nameof(unitManager));
+
             _rtssService = new RtssService(_settings);
-            _chartWriter = new OsdChartWriter(-32, -1, 1);
+            _rtssChartWriter = new RtssChartWriter(-32, -1, 1);
 
             _groupByType = (GroupByKind)_settings.GetValue("RtssAdapter.GroupByType", (int)GroupByKind.None);
             _separateGroups = _settings.GetValue("RtssAdapter.SeparateGroups", true);
@@ -144,7 +145,7 @@ namespace LibreHardwareMonitor.Rtss
                 Value = () => s.Value,
             }));
 
-            _chartWriter.Init((uint)_displayItems.Count, 512);
+            _rtssChartWriter.Init((uint)_displayItems.Count, 512);
         }
 
         private int _try;
@@ -169,11 +170,11 @@ namespace LibreHardwareMonitor.Rtss
                 {
                     _try = 0;
 
-                    _chartWriter.Begin();
+                    _rtssChartWriter.Begin();
 
                     string data = _displayItems.Count > 0 ? FormatData() : string.Empty;
 
-                    _chartWriter.End();
+                    _rtssChartWriter.End();
 
                     try
                     {
@@ -303,7 +304,7 @@ namespace LibreHardwareMonitor.Rtss
                 var d = displayItems.Select((item, index) =>
                 {
                     string group = $"<C={item.Color}>{FormatName(item)}:\t{FormatValue(item)} " 
-                                   + _chartWriter.Append(_osd, index, item.Value() ?? 0, 0, 100) + "<C>";
+                                   + _rtssChartWriter.Append(_osd, index, item.Value() ?? 0, 0, 100) + "<C>";
 
                     return group;
                 });
@@ -321,7 +322,7 @@ namespace LibreHardwareMonitor.Rtss
                 result += "<C2><APP><C>	<A0><FR><A><A1><S1> FPS<S><A> <A0><FT><A><A1><S2> ms<S><A>";
             }
 
-            return RtssTags + result;
+            return RtssDefaultTags + result;
         }
 
         //private static (float Min, float Max) GetMinMax(RtssDisplayItem item)
