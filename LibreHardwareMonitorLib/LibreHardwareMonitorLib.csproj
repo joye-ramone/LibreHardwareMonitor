@@ -20,6 +20,7 @@
     <Pack>true</Pack>
     <RepositoryUrl>https://github.com/LibreHardwareMonitor/LibreHardwareMonitor</RepositoryUrl>
     <Platforms>x64</Platforms>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -161,7 +162,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="hidlibrary" Version="3.3.28" />
+    <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="System.Management" Version="4.7.0" />
   </ItemGroup>
 </Project>
