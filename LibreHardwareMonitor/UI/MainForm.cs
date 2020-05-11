@@ -170,9 +170,9 @@ namespace LibreHardwareMonitor.UI
 
             bool externalMenuVisible = false;
 
-            int p = (int)Environment.OSVersion.Platform;
-            if (p == 4 || p == 128)
-            { // Unix
+            if (Software.OperatingSystem.IsUnix)
+            {
+                // Unix
                 treeView.RowHeight = Math.Max(treeView.RowHeight, 18);
 
                 splitContainer.BorderStyle = BorderStyle.None;
@@ -186,7 +186,8 @@ namespace LibreHardwareMonitor.UI
                 startMinMenuItem.Visible = false;
             }
             else
-            { // Windows
+            { 
+                // Windows
                 treeView.RowHeight = Math.Max(treeView.Font.Height + 1, 18);
 
                 _gadget = new SensorGadget(_computer, _settings, _unitManager);
