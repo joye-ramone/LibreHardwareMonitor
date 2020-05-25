@@ -72,9 +72,9 @@
             this.chkShowHideHotKey.AutoSize = true;
             this.chkShowHideHotKey.Location = new System.Drawing.Point(21, 26);
             this.chkShowHideHotKey.Name = "chkShowHideHotKey";
-            this.chkShowHideHotKey.Size = new System.Drawing.Size(118, 17);
+            this.chkShowHideHotKey.Size = new System.Drawing.Size(115, 17);
             this.chkShowHideHotKey.TabIndex = 8;
-            this.chkShowHideHotKey.Text = "Show/Hide HotKey";
+            this.chkShowHideHotKey.Text = "Show/Hide hotkey";
             this.chkShowHideHotKey.UseVisualStyleBackColor = true;
             this.chkShowHideHotKey.CheckedChanged += new System.EventHandler(this.ShowHideHotKeyCheckedChanged);
             // 
@@ -83,9 +83,9 @@
             this.chkEnableRtssServiceHotKey.AutoSize = true;
             this.chkEnableRtssServiceHotKey.Location = new System.Drawing.Point(21, 63);
             this.chkEnableRtssServiceHotKey.Name = "chkEnableRtssServiceHotKey";
-            this.chkEnableRtssServiceHotKey.Size = new System.Drawing.Size(157, 17);
+            this.chkEnableRtssServiceHotKey.Size = new System.Drawing.Size(113, 17);
             this.chkEnableRtssServiceHotKey.TabIndex = 9;
-            this.chkEnableRtssServiceHotKey.Text = "Enable RtssService HotKey";
+            this.chkEnableRtssServiceHotKey.Text = "Run RTSS hotkey";
             this.chkEnableRtssServiceHotKey.UseVisualStyleBackColor = true;
             this.chkEnableRtssServiceHotKey.CheckedChanged += new System.EventHandler(this.EnableRtssServiceHotKeyCheckedChanged);
             // 

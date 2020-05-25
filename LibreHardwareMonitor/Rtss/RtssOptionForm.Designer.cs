@@ -82,6 +82,24 @@
             label3.TabIndex = 11;
             label3.Text = "RTSS running:";
             // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new System.Drawing.Point(203, 111);
+            label4.Name = "label4";
+            label4.Size = new System.Drawing.Size(92, 13);
+            label4.TabIndex = 15;
+            label4.Text = "Group sensors by:";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new System.Drawing.Point(10, 111);
+            label5.Name = "label5";
+            label5.Size = new System.Drawing.Size(46, 13);
+            label5.TabIndex = 19;
+            label5.Text = "Options:";
+            // 
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
@@ -140,9 +158,9 @@
             this.chkSeparateGroups.AutoSize = true;
             this.chkSeparateGroups.Location = new System.Drawing.Point(12, 155);
             this.chkSeparateGroups.Name = "chkSeparateGroups";
-            this.chkSeparateGroups.Size = new System.Drawing.Size(106, 17);
+            this.chkSeparateGroups.Size = new System.Drawing.Size(104, 17);
             this.chkSeparateGroups.TabIndex = 8;
-            this.chkSeparateGroups.Text = "Separate Groups";
+            this.chkSeparateGroups.Text = "Separate groups";
             this.chkSeparateGroups.UseVisualStyleBackColor = true;
             // 
             // chkUseSensorNameAsKey
@@ -150,9 +168,9 @@
             this.chkUseSensorNameAsKey.AutoSize = true;
             this.chkUseSensorNameAsKey.Location = new System.Drawing.Point(12, 178);
             this.chkUseSensorNameAsKey.Name = "chkUseSensorNameAsKey";
-            this.chkUseSensorNameAsKey.Size = new System.Drawing.Size(148, 17);
+            this.chkUseSensorNameAsKey.Size = new System.Drawing.Size(122, 17);
             this.chkUseSensorNameAsKey.TabIndex = 9;
-            this.chkUseSensorNameAsKey.Text = "Use Sensor Name As Key";
+            this.chkUseSensorNameAsKey.Text = "Sensor name as key";
             this.chkUseSensorNameAsKey.UseVisualStyleBackColor = true;
             // 
             // lblAvailableState
@@ -184,15 +202,6 @@
             this.btnTryRun.Text = "Try Run";
             this.btnTryRun.UseVisualStyleBackColor = true;
             this.btnTryRun.Click += new System.EventHandler(this.TryRunClick);
-            // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.Location = new System.Drawing.Point(203, 111);
-            label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(92, 13);
-            label4.TabIndex = 15;
-            label4.Text = "Group sensors by:";
             // 
             // radioButton1
             // 
@@ -226,15 +235,6 @@
             this.radioButton3.TabStop = true;
             this.radioButton3.Text = "Hardware";
             this.radioButton3.UseVisualStyleBackColor = true;
-            // 
-            // label5
-            // 
-            label5.AutoSize = true;
-            label5.Location = new System.Drawing.Point(10, 111);
-            label5.Name = "label5";
-            label5.Size = new System.Drawing.Size(46, 13);
-            label5.TabIndex = 19;
-            label5.Text = "Options:";
             // 
             // RtssOptionForm
             // 
