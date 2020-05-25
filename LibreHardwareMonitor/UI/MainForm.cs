@@ -444,7 +444,9 @@ namespace LibreHardwareMonitor.UI
                 }
             }
             else
+            {
                 Show();
+            }
 
             _globalHotkey = new GlobalHotkey(_settings);
             _globalHotkey.SetHotKeys(GetGlobalHotKeys());
@@ -463,6 +465,17 @@ namespace LibreHardwareMonitor.UI
                     SysTrayHideShow();
                 }
             };
+
+            Microsoft.Win32.SystemEvents.PowerModeChanged += PowerModeChanged;
+        }
+
+        private void PowerModeChanged(object sender, Microsoft.Win32.PowerModeChangedEventArgs eventArgs)
+        {
+
+            if (eventArgs.Mode == Microsoft.Win32.PowerModes.Resume)
+            {
+                _computer.Reset();
+            }
         }
 
         private IEnumerable<(string, Action)> GetGlobalHotKeys()
@@ -1194,8 +1207,7 @@ namespace LibreHardwareMonitor.UI
             // disable the fallback MainIcon during reset, otherwise icon visibility
             // might be lost
             _systemTray.IsMainIconEnabled = false;
-            _computer.Close();
-            _computer.Open();
+            _computer.Reset();
             // restore the MainIcon setting
             _systemTray.IsMainIconEnabled = _minimizeToTray.Value;
         }

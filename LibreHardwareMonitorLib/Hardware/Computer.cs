@@ -25,18 +25,15 @@ namespace LibreHardwareMonitor.Hardware
     {
         private readonly List<IGroup> _groups = new List<IGroup>();
         private readonly ISettings _settings;
-
-        private bool _cpuEnabled;
         private bool _controllerEnabled;
+        private bool _cpuEnabled;
         private bool _gpuEnabled;
         private bool _memoryEnabled;
         private bool _motherboardEnabled;
         private bool _networkEnabled;
-        private bool _storageEnabled;
-
         private bool _open;
-
         private SMBios _smbios;
+        private bool _storageEnabled;
 
         public Computer()
         {
@@ -290,21 +287,19 @@ namespace LibreHardwareMonitor.Hardware
 
         public void Accept(IVisitor visitor)
         {
-            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
+            if (visitor == null)
+                throw new ArgumentNullException(nameof(visitor));
+
 
             visitor.VisitComputer(this);
         }
 
         public void Traverse(IVisitor visitor)
         {
-            if (visitor == null) throw new ArgumentNullException(nameof(visitor));
-
             foreach (IGroup group in _groups)
             {
                 foreach (IHardware hardware in group.Hardware)
-                {
                     hardware.Accept(visitor);
-                }
             }
         }
 
@@ -312,6 +307,7 @@ namespace LibreHardwareMonitor.Hardware
         {
             if (_groups.Contains(group))
                 return;
+
 
             _groups.Add(group);
 
@@ -327,8 +323,8 @@ namespace LibreHardwareMonitor.Hardware
             if (!_groups.Contains(group))
                 return;
 
-            _groups.Remove(group);
 
+            _groups.Remove(group);
             if (HardwareRemoved != null)
             {
                 foreach (IHardware hardware in group.Hardware)
@@ -363,6 +359,13 @@ namespace LibreHardwareMonitor.Hardware
             Ring0.Open();
             OpCode.Open();
 
+            AddGroups();
+
+            _open = true;
+        }
+
+        private void AddGroups()
+        {
             if (_motherboardEnabled)
                 Add(new MotherboardGroup(_smbios, _settings));
 
@@ -391,8 +394,6 @@ namespace LibreHardwareMonitor.Hardware
 
             if (_networkEnabled)
                 Add(new NetworkGroup(_settings));
-
-            _open = true;
         }
 
         private static void NewSection(TextWriter writer)
@@ -483,6 +484,25 @@ namespace LibreHardwareMonitor.Hardware
 
             _smbios = null;
             _open = false;
+        }
+
+        public void Reset()
+        {
+            if (!_open)
+                return;
+
+
+            RemoveGroups();
+            AddGroups();
+        }
+
+        private void RemoveGroups()
+        {
+            while (_groups.Count > 0)
+            {
+                IGroup group = _groups[_groups.Count - 1];
+                Remove(group);
+            }
         }
 
         private class Settings : ISettings
