@@ -185,9 +185,10 @@ namespace LibreHardwareMonitor.Hardware.CPU
                     string name = null;
                     try
                     {
-                        using StreamReader reader = new StreamReader(path + "/device/name");
-
-                        name = reader.ReadLine();
+                        using (StreamReader reader = new StreamReader(path + "/device/name"))
+                        {
+                            name = reader.ReadLine();
+                        }
                     }
                     catch (IOException)
                     { }

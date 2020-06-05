@@ -56,7 +56,10 @@ namespace LibreHardwareMonitor.Hardware.Controller.AeroCool
 
                 while (_running)
                 {
-                    ar ??= _stream.BeginRead(inputReportBuffer, 0, inputReportBuffer.Length, null, null);
+                    if (ar == null)
+                    {
+                        ar = _stream.BeginRead(inputReportBuffer, 0, inputReportBuffer.Length, null, null);
+                    }
 
                     if (ar.IsCompleted)
                     {
